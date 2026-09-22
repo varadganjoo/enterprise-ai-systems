@@ -1,6 +1,6 @@
 # Enterprise AI Systems Engineering Suite
 
-A production-grade portfolio of **9 enterprise AI systems** demonstrating deterministic guardrails, state-machine orchestration, AST-enforced security, verifiable retrieval, and human-in-the-loop (HITL) workflows.
+An engineering portfolio of **9 enterprise AI systems** demonstrating deterministic guardrails, state-machine orchestration, AST-enforced security, verifiable retrieval, and human-in-the-loop (HITL) workflows.
 
 Built specifically to showcase **senior-level AI engineering capabilities** for both high-impact contract roles (immediate ROI, risk mitigation, operational reliability) and full-time positions (systems architecture, evals-as-code, and production rigor).
 
@@ -37,7 +37,7 @@ Every system is an independent, runnable FastAPI application with its own modern
 
 | # | System | Port | Business Invariant & Technical Proof |
 | :--- | :--- | :--- | :--- |
-| **01** | **[Cited Knowledge Agent](01-cited-knowledge-agent/README.md)** | `8001` | **Zero-Hallucination Grounding**: Hybrid BM25 + Gemini vector search with Reciprocal Rank Fusion (RRF). Answers cite verbatim character spans; hallucinated quotes are discarded in code; superseded policies are rejected unless historical context is explicitly requested. |
+| **01** | **[Cited Knowledge Agent](01-cited-knowledge-agent/README.md)** | `8001` | **Verifiable Span Grounding**: Hybrid BM25 + Gemini vector search with Reciprocal Rank Fusion (RRF). Answers cite verbatim character spans; hallucinated quotes are discarded in code; superseded policies are rejected unless historical context is explicitly requested. |
 | **02** | **[Document Extraction](02-document-extraction/README.md)** | `8002` | **Accounting Reconciliation**: Ingests invoices and validates line-item math (`sum(items) + tax - discount == total`). If confidence < 0.85 or math mismatches by > $0.01, automatically routes to human triage. |
 | **03** | **[Operator Agent](03-operator-agent/README.md)** | `8003` | **Two-Man Rule Execution**: Stateful agent with step & token caps. External messages/actions are placed in a pending approval queue; no message is ever sent without explicit human sign-off. |
 | **04** | **[Analytics Copilot](04-analytics-copilot/README.md)** | `8004` | **AST-Level SQL Safety**: Uses `sqlglot` AST validation to enforce read-only semantics (`SELECT` only, zero DDL/DML, table allowlist). Injects strict `LIMIT` clauses and connects via SQLite `mode=ro`. |
