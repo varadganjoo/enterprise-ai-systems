@@ -1,0 +1,12 @@
+NORTHWIND SUPPLY
+Invoice INV-1001
+Purchase order PO-1001
+Date: 2026-03-12
+Currency: USD
+
+Widget  2  50.00  100.00
+Gadget  1  250.00  250.00
+
+Subtotal 350.00
+Tax 28.00
+Total 378.00

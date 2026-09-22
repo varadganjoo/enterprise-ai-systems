@@ -1,0 +1,30 @@
+{
+  "PO-1001": {
+    "vendor": "Northwind Supply",
+    "lines": [
+      {"description": "Widget", "quantity": 2, "unit_price": 50},
+      {"description": "Gadget", "quantity": 1, "unit_price": 250}
+    ]
+  },
+  "PO-2044": {
+    "vendor": "Bright Paper Co",
+    "lines": [
+      {"description": "Ream of paper", "quantity": 4, "unit_price": 20},
+      {"description": "Ink cartridge", "quantity": 1, "unit_price": 40}
+    ]
+  },
+  "PO-3188": {
+    "vendor": "Harbor Studio Supply",
+    "lines": [
+      {"description": "Notebook", "quantity": 3, "unit_price": 12},
+      {"description": "Pen set", "quantity": 2, "unit_price": 8.5}
+    ]
+  },
+  "PO-3090": {
+    "vendor": "Pixel Parts",
+    "lines": [
+      {"description": "Cable", "quantity": 2, "unit_price": 20},
+      {"description": "Adapter", "quantity": 1, "unit_price": 50}
+    ]
+  }
+}

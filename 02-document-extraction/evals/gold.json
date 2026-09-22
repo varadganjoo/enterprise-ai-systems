@@ -1,0 +1,34 @@
+[
+  {
+    "document": "northwind-1001.txt",
+    "vendor": "Northwind Supply",
+    "invoice_number": "INV-1001",
+    "invoice_date": "2026-03-12",
+    "total": 378.0,
+    "expect_review": false
+  },
+  {
+    "document": "bright-2044.txt",
+    "vendor": "Bright Paper Co",
+    "invoice_number": "INV-2044",
+    "invoice_date": "2026-02-11",
+    "total": 128.4,
+    "expect_review": false
+  },
+  {
+    "document": "harbor-3188.txt",
+    "vendor": "Harbor Studio Supply",
+    "invoice_number": "INV-3188",
+    "invoice_date": "2026-01-09",
+    "total": 57.24,
+    "expect_review": false
+  },
+  {
+    "document": "mismatch-3090.txt",
+    "vendor": "Pixel Parts",
+    "invoice_number": "INV-3090",
+    "invoice_date": "2026-05-02",
+    "total": 150.0,
+    "expect_review": true
+  }
+]

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-Hop Brief · DAG Fact Synthesis Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --card: #151821;
+      --card-alt: #1c202c;
+      --border: #262c3d;
+      --border-focus: #3b82f6;
+      --ink: #f1f5f9;
+      --ink-muted: #94a3b8;
+      --ink-subtle: #64748b;
+      --accent: #38bdf8;
+      --verified: #10b981;
+      --verified-bg: rgba(16, 185, 129, 0.12);
+      --verified-border: rgba(16, 185, 129, 0.35);
+      --missing: #f43f5e;
+      --missing-bg: rgba(244, 63, 94, 0.12);
+      --missing-border: rgba(244, 63, 94, 0.35);
+      --gated: #f59e0b;
+      --gated-bg: rgba(245, 158, 11, 0.12);
+      --gated-border: rgba(245, 158, 11, 0.35);
+      --highlight: #fef08a;
+      --highlight-ink: #1e1b4b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    header, main {
+      width: min(1200px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+    header {
+      padding: 32px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .kicker {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .kicker::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    .badge-pipeline {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+    }
+    h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 650;
+      font-size: clamp(32px, 4.5vw, 48px);
+      line-height: 1.05;
+      margin: 4px 0 10px;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      max-width: 78ch;
+      color: var(--ink-muted);
+      margin: 0;
+      font-size: 15px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-muted);
+      margin-bottom: 8px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0d0f14;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    button.btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: 0;
+      border-radius: 6px;
+      padding: 9px 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    button.btn-primary:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .sample-btn {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      color: var(--ink-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sample-btn:hover {
+      background: #232838;
+      color: var(--ink);
+      border-color: var(--ink-subtle);
+    }
+    .telemetry-row {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .synthesis-card {
+      background: #11141c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .synthesis-card.refused {
+      border-color: var(--missing-border);
+      background: rgba(244, 63, 94, 0.04);
+    }
+    .synthesis-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .synthesis-title {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 20px;
+      margin: 0;
+      color: #ffffff;
+    }
+    .synthesis-answer {
+      font-size: 18px;
+      font-weight: 600;
+      color: #38bdf8;
+      line-height: 1.5;
+    }
+    .synthesis-refused-reason {
+      color: #fb7185;
+      font-size: 14px;
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid var(--missing-border);
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    /* Hop Badges */
+    .status-badge {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-badge.verified {
+      background: var(--verified-bg);
+      border: 1px solid var(--verified-border);
+      color: var(--verified);
+    }
+    .status-badge.missing-citation, .status-badge.missing_citation {
+      background: var(--missing-bg);
+      border: 1px solid var(--missing-border);
+      color: var(--missing);
+    }
+    .status-badge.gated {
+      background: var(--gated-bg);
+      border: 1px solid var(--gated-border);
+      color: var(--gated);
+    }
+
+    /* Graph Section */
+    .graph-section {
+      margin-top: 24px;
+    }
+    .section-title {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--ink-muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dag-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+    }
+    .hop-node {
+      background: #11141c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      transition: all 0.2s;
+    }
+    .hop-node.node-verified { border-left: 4px solid var(--verified); }
+    .hop-node.node-missing { border-left: 4px solid var(--missing); }
+    .hop-node.node-gated { border-left: 4px solid var(--gated); }
+
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .node-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .node-id {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    .node-doc {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-muted);
+      background: #1a1f2c;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .node-question {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+    .node-answer-box {
+      background: #0b0d13;
+      border: 1px solid #1f2535;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 8px;
+    }
+    .answer-label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-subtle);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .answer-content {
+      font-size: 14px;
+      color: #e2e8f0;
+    }
+    .quote-content {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: #cbd5e1;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #262c3d;
+    }
+    .gated-alert {
+      color: #f59e0b;
+      font-weight: 500;
+      font-style: italic;
+    }
+    .missing-alert {
+      color: #fb7185;
+      font-weight: 500;
+      font-style: italic;
+    }
+    .dependency-tag {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-subtle);
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .connector-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 20px;
+      color: var(--ink-subtle);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <div class="kicker">Cluster 1 / Multi-Hop Reasoning · Port 8009</div>
+      <div class="badge-pipeline">DAG FACT SYNTHESIS ENGINE</div>
+    </div>
+    <h1>Multi-Hop Brief</h1>
+    <p class="lede">Synthesize answers that span multiple corporate documents via an explicit Directed Acyclic Graph (DAG) of facts. Invariant: If any prerequisite hop lacks a verified verbatim citation, intermediate conclusions are strictly gated and withheld to prevent hallucination.</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <form id="form">
+        <label for="question">Inquiry Requiring Multi-Hop Synthesis</label>
+        <textarea id="question">We cancel at the start of month 5. What is the cancellation fee?</textarea>
+        <div class="row-actions">
+          <button type="submit" class="btn-primary" id="submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6z"/></svg>
+            Execute Multi-Hop DAG
+          </button>
+          <button type="button" class="sample-btn" data-q="We cancel at the start of month 5. What is the cancellation fee?">Cancellation Fee (2 Hops across 2 Docs)</button>
+          <button type="button" class="sample-btn" data-q="What is the cancellation fee for an enterprise contract in year 3?">Missing Fact Test (Gated Synthesis)</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="results-panel" style="display: none;">
+      <div class="telemetry-row" id="telemetry"></div>
+
+      <div class="synthesis-card" id="synthesis-card">
+        <div class="synthesis-header">
+          <h2 class="synthesis-title">Multi-Hop Synthesis Result</h2>
+          <div class="status-badge" id="synthesis-badge">VERIFIED</div>
+        </div>
+        <div class="synthesis-answer" id="synthesis-answer"></div>
+        <div class="synthesis-refused-reason" id="synthesis-reason" style="display: none;"></div>
+      </div>
+
+      <div class="graph-section">
+        <div class="section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="9" y="15" width="6" height="6" rx="1"/><path d="m6 9 4.5 6"/><path d="m18 9-4.5 6"/></svg>
+          Reasoning Graph (DAG) & Dependency Hops
+        </div>
+        <div class="dag-flow" id="dag-flow"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector("#form");
+    const question = document.querySelector("#question");
+    const submit = document.querySelector("#submit");
+    const resultsPanel = document.querySelector("#results-panel");
+    const telemetry = document.querySelector("#telemetry");
+    const synthesisCard = document.querySelector("#synthesis-card");
+    const synthesisBadge = document.querySelector("#synthesis-badge");
+    const synthesisAnswer = document.querySelector("#synthesis-answer");
+    const synthesisReason = document.querySelector("#synthesis-reason");
+    const dagFlow = document.querySelector("#dag-flow");
+
+    document.querySelectorAll(".sample-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        question.value = btn.dataset.q;
+        question.focus();
+      });
+    });
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function formatStatusBadge(status) {
+      const s = (status || "").toLowerCase().replace(" ", "-");
+      let text = status || "Verified";
+      if (s === "missing-citation" || s === "missing_citation") {
+        return `<span class="status-badge missing-citation">MISSING CITATION</span>`;
+      } else if (s === "gated") {
+        return `<span class="status-badge gated">GATED</span>`;
+      }
+      return `<span class="status-badge verified">VERIFIED</span>`;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      submit.disabled = true;
+      telemetry.textContent = "Planning DAG and evaluating multi-hop fact dependencies across documents…";
+      resultsPanel.style.display = "block";
+      dagFlow.replaceChildren();
+
+      try {
+        const res = await fetch("/brief", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: question.value })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          telemetry.textContent = data.detail || "Multi-hop evaluation failed.";
+          return;
+        }
+
+        telemetry.textContent = `${data.model} · Latency: ${data.latency_ms} ms · Tokens: ${data.prompt_tokens} in / ${data.output_tokens} out`;
+
+        // Synthesis Card
+        if (data.refused) {
+          synthesisCard.className = "synthesis-card refused";
+          synthesisBadge.className = "status-badge gated";
+          synthesisBadge.textContent = "SYNTHESIS GATED";
+          synthesisAnswer.textContent = "Result withheld due to unverified dependencies.";
+          synthesisAnswer.style.color = "#fb7185";
+          synthesisReason.style.display = "block";
+          synthesisReason.textContent = data.reason || "One or more required hops lack verbatim citation.";
+        } else {
+          synthesisCard.className = "synthesis-card";
+          synthesisBadge.className = "status-badge verified";
+          synthesisBadge.textContent = "VERIFIED SYNTHESIS";
+          synthesisAnswer.textContent = data.answer;
+          synthesisAnswer.style.color = "#38bdf8";
+          synthesisReason.style.display = "none";
+        }
+
+        // Render DAG Hops
+        dagFlow.replaceChildren();
+        const hops = data.hops || [];
+
+        hops.forEach((hop, idx) => {
+          const st = (hop.status || (hop.supported ? "Verified" : "Missing Citation")).toLowerCase().replace(" ", "-");
+          const card = document.createElement("div");
+          card.className = `hop-node node-${st.startsWith("ver") ? "verified" : (st.startsWith("mis") ? "missing" : "gated")}`;
+
+          let statusClass = "verified";
+          if (st.includes("missing")) statusClass = "missing-citation";
+          else if (st.includes("gated")) statusClass = "gated";
+
+          const header = document.createElement("div");
+          header.className = "node-header";
+
+          const titleGroup = document.createElement("div");
+          titleGroup.className = "node-title-group";
+          titleGroup.innerHTML = `
+            <span class="node-id">${escapeHtml(hop.id || `hop_${idx+1}`)}</span>
+            ${hop.source ? `<span class="node-doc">${escapeHtml(hop.source)}</span>` : ""}
+          `;
+
+          header.append(titleGroup);
+          header.innerHTML += formatStatusBadge(hop.status || (hop.supported ? "Verified" : "Missing Citation"));
+
+          const qDiv = document.createElement("div");
+          qDiv.className = "node-question";
+          qDiv.textContent = hop.question;
+
+          const answerBox = document.createElement("div");
+          answerBox.className = "node-answer-box";
+
+          if (hop.status === "Gated") {
+            answerBox.innerHTML = `
+              <div class="answer-label">Conclusion Status</div>
+              <div class="gated-alert">Intermediate conclusion withheld because a prerequisite hop is unverified.</div>
+            `;
+          } else if (hop.status === "Missing Citation" || (!hop.supported && !hop.quote)) {
+            answerBox.innerHTML = `
+              <div class="answer-label">Citation Status</div>
+              <div class="missing-alert">No verbatim citation found in passages for this subquestion.</div>
+            `;
+          } else {
+            answerBox.innerHTML = `
+              <div class="answer-label">Extracted Fact</div>
+              <div class="answer-content"><strong>${escapeHtml(hop.answer)}</strong></div>
+              ${hop.quote ? `<div class="quote-content">“${escapeHtml(hop.quote)}” <span style="color:var(--ink-subtle)">[${hop.start_char || 0}:${hop.end_char || 0}]</span></div>` : ""}
+            `;
+          }
+
+          card.append(header, qDiv, answerBox);
+
+          if (hop.depends_on && hop.depends_on.length > 0) {
+            const depTag = document.createElement("div");
+            depTag.className = "dependency-tag";
+            depTag.innerHTML = `<span>Dependencies:</span> <code>${hop.depends_on.join(", ")}</code>`;
+            card.append(depTag);
+          }
+
+          dagFlow.append(card);
+
+          if (idx < hops.length - 1) {
+            const connector = document.createElement("div");
+            connector.className = "connector-line";
+            connector.textContent = "▼";
+            dagFlow.append(connector);
+          }
+        });
+
+      } catch (err) {
+        telemetry.textContent = "Error: Unable to connect to multi-hop brief engine.";
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

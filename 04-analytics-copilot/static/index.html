@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Analytics Copilot — Enterprise SQL Guard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card-bg: #121824;
+      --card-border: #1e293b;
+      --card-hover: #182234;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --code-bg: #070a10;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-heading: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(180deg, #101726 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 32px 24px 28px;
+    }
+    .header-container, .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .top-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .kicker {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      padding: 3px 10px;
+      border-radius: 9999px;
+      display: inline-block;
+    }
+    .port-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .lede {
+      color: var(--text-muted);
+      max-width: 780px;
+      font-size: 15px;
+    }
+
+    .main-container {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Input & Samples */
+    .input-group {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      padding: 14px;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+    }
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+    .sample-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sample-chip {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sample-chip:hover {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+    }
+    .sample-chip.danger:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+
+    /* Scorecard */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+    .metric-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .metric-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    /* SQL & AST Guard Section */
+    .sql-box {
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .sql-box-header {
+      background: #0d131f;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sql-box-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ast-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+    .ast-badge.verified {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .ast-badge.refused {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    .sql-code {
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .sql-keyword { color: #93c5fd; font-weight: 600; }
+    .sql-string { color: #86efac; }
+    .sql-function { color: #f472b6; }
+    .sql-number { color: #fbbf24; }
+
+    /* Answer Banner */
+    .answer-banner {
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .answer-banner.refused {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .answer-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-blue);
+      margin-bottom: 4px;
+    }
+    .answer-banner.refused .answer-title {
+      color: var(--accent-red);
+    }
+    .answer-text {
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    /* Table */
+    .table-container {
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-align: left;
+    }
+    th {
+      background: #0d131f;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.6);
+      color: #cbd5e1;
+    }
+    tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.3);
+    }
+    tr:hover td {
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .empty-state {
+      padding: 32px;
+      text-align: center;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .action-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="top-badge-row">
+        <span class="kicker">04 / Analytics Copilot</span>
+        <span class="port-badge">port 8004 · sqlglot AST Guard</span>
+      </div>
+      <h1>Enterprise SQL Analytics Copilot</h1>
+      <p class="lede">Natural language to verified SQL execution. Strict AST guard enforces single SELECT statements, table allowlists, and maximum LIMIT 100 on read-only SQLite.</p>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Input Card -->
+    <section class="card">
+      <div class="card-title">
+        <span>Ask Analytics Copilot</span>
+        <span style="font-size: 12px; color: var(--text-dim);">Read-Only Mode (mode=ro)</span>
+      </div>
+      <form id="qform">
+        <div class="input-group">
+          <textarea id="question" rows="3" placeholder="Ask a question about customers, orders, revenue, or tickets...">What is the completed-order revenue for March 2026?</textarea>
+        </div>
+        <div class="action-row">
+          <button type="submit" class="btn-submit" id="submit-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            Execute Query
+          </button>
+          <div class="sample-chips">
+            <button type="button" class="sample-chip" data-q="What is the completed-order revenue for March 2026?">March 2026 Revenue</button>
+            <button type="button" class="sample-chip" data-q="How many tickets are open?">Open Tickets</button>
+            <button type="button" class="sample-chip" data-q="Who is the top customer by completed revenue?">Top Customer</button>
+            <button type="button" class="sample-chip danger" data-q="DELETE FROM tickets">Attack: Raw Delete</button>
+            <button type="button" class="sample-chip danger" data-q="SELECT * FROM customers; DROP TABLE orders;">Attack: Stacked Drop</button>
+            <button type="button" class="sample-chip danger" data-q="SELECT * FROM sqlite_master">Attack: Master Table</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results Section -->
+    <section class="card" id="results-card" style="display: none;">
+      <div class="card-title">
+        <span>Execution Report</span>
+        <div id="ast-badge-container"></div>
+      </div>
+
+      <!-- Metrics Scorecard -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">AST Validation</div>
+          <div class="metric-value" id="m-ast">0.00 ms</div>
+          <div class="metric-sub">sqlglot AST parse &amp; check</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Query Time</div>
+          <div class="metric-value" id="m-query">0.00 ms</div>
+          <div class="metric-sub">SQLite read-only engine</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Rows Returned</div>
+          <div class="metric-value" id="m-rows">0</div>
+          <div class="metric-sub" id="m-truncated">Max 100 enforced</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Latency</div>
+          <div class="metric-value" id="m-total">0 ms</div>
+          <div class="metric-sub" id="m-tokens">0 tokens</div>
+        </div>
+      </div>
+
+      <!-- Synthesized Answer -->
+      <div class="answer-banner" id="answer-banner">
+        <div class="answer-title" id="answer-title">Synthesized Answer</div>
+        <div class="answer-text" id="answer-text"></div>
+      </div>
+
+      <!-- Generated / Validated SQL -->
+      <div class="sql-box">
+        <div class="sql-box-header">
+          <span class="sql-box-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            AST-Validated SQL (Dialect: SQLite)
+          </span>
+          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);" id="metric-tag"></span>
+        </div>
+        <pre class="sql-code" id="sql-display">-- No SQL generated</pre>
+      </div>
+
+      <!-- Interactive Data Table -->
+      <div class="card-title" style="margin-top: 12px;">
+        <span>Result Set</span>
+        <span style="font-size: 12px; color: var(--text-dim);" id="table-count-label">0 rows</span>
+      </div>
+      <div class="table-container">
+        <table id="data-table">
+          <tbody id="table-body">
+            <tr><td class="empty-state">No tabular data available</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const questionInput = document.getElementById("question");
+    const resultsCard = document.getElementById("results-card");
+    const astBadgeContainer = document.getElementById("ast-badge-container");
+    const mAst = document.getElementById("m-ast");
+    const mQuery = document.getElementById("m-query");
+    const mRows = document.getElementById("m-rows");
+    const mTruncated = document.getElementById("m-truncated");
+    const mTotal = document.getElementById("m-total");
+    const mTokens = document.getElementById("m-tokens");
+    const answerBanner = document.getElementById("answer-banner");
+    const answerTitle = document.getElementById("answer-title");
+    const answerText = document.getElementById("answer-text");
+    const sqlDisplay = document.getElementById("sql-display");
+    const metricTag = document.getElementById("metric-tag");
+    const dataTable = document.getElementById("data-table");
+    const tableBody = document.getElementById("table-body");
+    const tableCountLabel = document.getElementById("table-count-label");
+    const submitBtn = document.getElementById("submit-btn");
+
+    // Sample prompt chips
+    document.querySelectorAll(".sample-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        questionInput.value = btn.dataset.q;
+        questionInput.focus();
+      });
+    });
+
+    // Simple SQL syntax highlighter
+    function highlightSQL(sql) {
+      if (!sql) return "";
+      const keywords = /\b(SELECT|FROM|WHERE|JOIN|ON|AND|OR|GROUP BY|ORDER BY|LIMIT|AS|IN|SUM|COUNT|AVG|MIN|MAX|HAVING|UNION|WITH|DESC|ASC|NOT|NULL|IS)\b/gi;
+      const strings = /('(?:''|[^'])*')/g;
+      const numbers = /\b(\d+(?:\.\d+)?)\b/g;
+
+      let escaped = sql
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      escaped = escaped.replace(strings, '<span class="sql-string">$1</span>');
+      escaped = escaped.replace(keywords, match => `<span class="sql-keyword">${match.toUpperCase()}</span>`);
+      escaped = escaped.replace(numbers, '<span class="sql-number">$1</span>');
+      return escaped;
+    }
+
+    document.getElementById("qform").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const q = questionInput.value.trim();
+      if (!q) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Validating &amp; Querying…';
+      resultsCard.style.display = "block";
+      answerBanner.className = "answer-banner";
+      answerTitle.textContent = "Processing";
+      answerText.textContent = "Synthesizing query, verifying AST safety, and executing on SQLite (mode=ro)…";
+
+      try {
+        const res = await fetch("/query", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q }),
+        });
+        const data = await res.json();
+
+        // Metrics
+        mAst.textContent = (data.ast_validation_ms != null ? data.ast_validation_ms : 0) + " ms";
+        mQuery.textContent = (data.query_time_ms != null ? data.query_time_ms : 0) + " ms";
+        mRows.textContent = data.rows_returned != null ? data.rows_returned : (data.rows ? data.rows.length : 0);
+        mTruncated.textContent = data.truncated ? "Truncated to 100 rows" : "Max 100 enforced";
+        mTotal.textContent = (data.latency_ms || 0) + " ms";
+        mTokens.textContent = (data.prompt_tokens || 0) + " in · " + (data.output_tokens || 0) + " out";
+
+        // Badges
+        if (data.refused) {
+          astBadgeContainer.innerHTML = `
+            <span class="ast-badge refused">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              AST Safety Refused
+            </span>
+          `;
+          answerBanner.className = "answer-banner refused";
+          answerTitle.textContent = "Safety / Validation Policy Refused";
+          answerText.textContent = data.reason || data.answer || "Query rejected by AST guard.";
+          sqlDisplay.textContent = data.sql || data.reason || "-- No execution allowed";
+          metricTag.textContent = "";
+        } else {
+          astBadgeContainer.innerHTML = `
+            <span class="ast-badge verified">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              AST Safety Verified
+            </span>
+          `;
+          answerBanner.className = "answer-banner";
+          answerTitle.textContent = "Synthesized Answer";
+          answerText.textContent = data.answer;
+          sqlDisplay.innerHTML = highlightSQL(data.sql || "-- Metric compiled SQL");
+          metricTag.textContent = data.metric ? "Compiled Metric: " + data.metric : "Dynamic AST Select";
+        }
+
+        // Table
+        tableBody.replaceChildren();
+        if (data.columns && data.columns.length && data.rows && data.rows.length) {
+          tableCountLabel.textContent = `${data.rows.length} row${data.rows.length === 1 ? '' : 's'}`;
+          const head = document.createElement("tr");
+          data.columns.forEach(col => {
+            const th = document.createElement("th");
+            th.textContent = col;
+            head.append(th);
+          });
+          tableBody.append(head);
+
+          data.rows.forEach(row => {
+            const tr = document.createElement("tr");
+            row.forEach(cell => {
+              const td = document.createElement("td");
+              td.textContent = cell === null ? "NULL" : cell;
+              tr.append(td);
+            });
+            tableBody.append(tr);
+          });
+        } else {
+          tableCountLabel.textContent = "0 rows";
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.className = "empty-state";
+          td.textContent = data.refused ? "No tabular results due to safety refusal." : "Query executed with 0 rows returned.";
+          tr.append(td);
+          tableBody.append(tr);
+        }
+      } catch (err) {
+        answerBanner.className = "answer-banner refused";
+        answerTitle.textContent = "Network / Server Error";
+        answerText.textContent = err.message || "Failed to reach analytics service.";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          Execute Query
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
