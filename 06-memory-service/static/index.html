@@ -147,4 +147,534 @@
     }
     .pii-pill {
       display: inline-block;
-      background: rgba(245, 
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fcd34d;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .pii-raw {
+      background: rgba(244, 63, 94, 0.2);
+      border-bottom: 2px dashed #f43f5e;
+      color: #fca5a5;
+    }
+
+    /* Chat / Message Form */
+    .chat-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      padding: 12px 16px;
+      transition: all 0.2s;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-emerald);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(5, 150, 105, 0.3);
+      white-space: nowrap;
+    }
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      transform: translateY(-1px);
+    }
+    .sample-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .sample-chip {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sample-chip:hover {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+    }
+
+    /* Chat log */
+    .chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .chat-bubble {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      max-width: 85%;
+    }
+    .chat-bubble.assistant {
+      align-self: flex-start;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #e2e8f0;
+      max-width: 90%;
+    }
+    .chat-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* Active Slots Table */
+    .slots-table-container {
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    th {
+      background: #0d131f;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+      text-align: left;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(30, 41, 59, 0.6);
+      color: #cbd5e1;
+    }
+    tr:nth-child(even) td { background: rgba(15, 23, 42, 0.3); }
+    .slot-tag {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Supersession Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 24px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--card-border);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -21px;
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      border: 2px solid var(--card-bg);
+    }
+    .timeline-item.superseded::before {
+      background: var(--text-dim);
+    }
+    .timeline-item.forgotten::before {
+      background: var(--accent-rose);
+    }
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .timeline-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .timeline-title.struck {
+      text-decoration: line-through;
+      color: var(--text-dim);
+    }
+    .timeline-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .timeline-badge.active { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .timeline-badge.superseded { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+    .timeline-badge.forgotten { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+    .timeline-body {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      background: #0d131f;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        grid-template-columns: 1fr;
+      }
+      .pii-comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="top-badge-row">
+        <span class="kicker">06 / Memory Service</span>
+        <span class="port-badge">port 8006 · Entity Slot Memory &amp; PII Redaction Engine</span>
+      </div>
+      <h1>Enterprise Slot Memory &amp; PII Redaction</h1>
+      <p class="lede">Continuous session memory with deterministic slot supersession tracking. Client PII (emails, phones, SSNs, credit cards) is securely masked with placeholder tokens before external LLM dispatch and re-hydrated in real time.</p>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Left Column: Chat & PII Redaction Live Comparison -->
+    <section>
+      <!-- Live PII Redaction Comparison Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>Live PII Redaction Engine</span>
+          <span style="font-size: 12px; color: var(--accent-emerald);">Bidirectional Token Vault</span>
+        </div>
+        <div class="pii-comparison-grid">
+          <div class="pii-box">
+            <div class="pii-box-header">
+              <span style="color: var(--text-dim);">Original User Input</span>
+              <span style="color: #f43f5e; font-size: 10px;">Unredacted Client Text</span>
+            </div>
+            <div class="pii-box-content" id="pii-orig-display">Submit a message with email, phone, or SSN to inspect redaction.</div>
+          </div>
+          <div class="pii-box">
+            <div class="pii-box-header">
+              <span style="color: var(--text-dim);">Prompt Sent to LLM</span>
+              <span style="color: var(--accent-amber); font-size: 10px;">Zero-PII Tokenized</span>
+            </div>
+            <div class="pii-box-content" id="pii-redacted-display">Redacted prompt with tokens e.g. [EMAIL_1] will appear here.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat & Memory Testing -->
+      <div class="card">
+        <div class="card-title">
+          <span>Memory Assistant Console</span>
+          <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);" id="session-id-label">Session: initializing…</span>
+        </div>
+
+        <form id="chatform">
+          <div class="chat-input-group">
+            <input type="text" id="chat-input" placeholder="Say something to remember (e.g. My contact email is alex@company.com)..." value="Remember that my email is alex@company.com and phone is 415-555-0199.">
+            <button type="submit" class="btn-submit" id="send-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send
+            </button>
+          </div>
+        </form>
+
+        <div class="sample-chips">
+          <button type="button" class="sample-chip" data-msg="Remember that my email is alex@company.com and phone is 415-555-0199.">Add Email &amp; Phone (PII)</button>
+          <button type="button" class="sample-chip" data-msg="Remember that my user_location is San Francisco.">Set Location (Slot: user_location)</button>
+          <button type="button" class="sample-chip" data-msg="Actually, my user_location is now New York.">Update Location (Supersedes SF)</button>
+          <button type="button" class="sample-chip" data-msg="What do you know about my location and contact info?">Recall Query</button>
+          <button type="button" class="sample-chip" data-msg="My secret password is Pass123!456">Secret Attempt (Blocked)</button>
+        </div>
+
+        <div class="chat-log" id="chat-log">
+          <div class="chat-bubble assistant">
+            <div>Session initialized. You can store preferences, decisions, and contact facts. All PII will be masked with zero leakage.</div>
+            <div class="chat-meta">System · Ready</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Active Memory Slots & Supersession Timeline -->
+    <aside>
+      <!-- Active Slots Table -->
+      <div class="card">
+        <div class="card-title">
+          <span>Active Memory Slots</span>
+          <span style="font-size: 12px; color: var(--accent-cyan);" id="active-count-label">0 active</span>
+        </div>
+        <div class="slots-table-container">
+          <table id="slots-table">
+            <thead>
+              <tr>
+                <th>Slot</th>
+                <th>Content</th>
+                <th>ID</th>
+              </tr>
+            </thead>
+            <tbody id="slots-table-body">
+              <tr><td colspan="3" style="text-align: center; color: var(--text-dim); padding: 16px;">No active memory slots.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Supersession History Timeline -->
+      <div class="card">
+        <div class="card-title">
+          <span>Supersession History Timeline</span>
+          <span style="font-size: 12px; color: var(--text-dim);">Lineage &amp; Archives</span>
+        </div>
+        <div class="timeline" id="timeline-container">
+          <p style="color: var(--text-dim); font-size: 13px; font-style: italic;">No historical events recorded yet.</p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    let sessionId = "";
+    const sessionLabel = document.getElementById("session-id-label");
+    const chatInput = document.getElementById("chat-input");
+    const sendBtn = document.getElementById("send-btn");
+    const chatLog = document.getElementById("chat-log");
+    const piiOrigDisplay = document.getElementById("pii-orig-display");
+    const piiRedactedDisplay = document.getElementById("pii-redacted-display");
+    const slotsTableBody = document.getElementById("slots-table-body");
+    const activeCountLabel = document.getElementById("active-count-label");
+    const timelineContainer = document.getElementById("timeline-container");
+
+    // Sample prompt chips
+    document.querySelectorAll(".sample-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        chatInput.value = btn.dataset.msg;
+        chatInput.focus();
+      });
+    });
+
+    // Initialize session
+    fetch("/sessions", { method: "POST" })
+      .then(r => r.json())
+      .then(data => {
+        sessionId = data.session_id;
+        sessionLabel.textContent = "Session: " + sessionId.slice(0, 8) + "…";
+        refreshMemories();
+      });
+
+    async function refreshMemories() {
+      if (!sessionId) return;
+      try {
+        const res = await fetch("/memories/" + sessionId);
+        const data = await res.json();
+        renderActiveSlots(data.active || []);
+        renderTimeline(data.active || [], data.history || []);
+      } catch (err) {
+        console.error("Failed to refresh memories:", err);
+      }
+    }
+
+    function renderActiveSlots(active) {
+      activeCountLabel.textContent = `${active.length} active`;
+      slotsTableBody.replaceChildren();
+      if (!active.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = '<td colspan="3" style="text-align: center; color: var(--text-dim); padding: 16px;">No active memory slots.</td>';
+        slotsTableBody.append(tr);
+        return;
+      }
+      active.forEach(item => {
+        const tr = document.createElement("tr");
+        const slotTd = document.createElement("td");
+        slotTd.innerHTML = `<span class="slot-tag">${item.slot || item.kind}</span>`;
+        const contentTd = document.createElement("td");
+        contentTd.textContent = item.content;
+        const idTd = document.createElement("td");
+        idTd.style.color = "var(--text-dim)";
+        idTd.textContent = "#" + item.id;
+        tr.append(slotTd, contentTd, idTd);
+        slotsTableBody.append(tr);
+      });
+    }
+
+    function renderTimeline(active, history) {
+      timelineContainer.replaceChildren();
+      const all = [...active, ...history].sort((a, b) => b.id - a.id);
+      if (!all.length) {
+        timelineContainer.innerHTML = '<p style="color: var(--text-dim); font-size: 13px; font-style: italic;">No historical events recorded yet.</p>';
+        return;
+      }
+
+      all.forEach(item => {
+        const div = document.createElement("div");
+        div.className = `timeline-item ${item.status}`;
+        
+        const header = document.createElement("div");
+        header.className = "timeline-header";
+
+        const title = document.createElement("span");
+        title.className = `timeline-title ${item.status !== 'active' ? 'struck' : ''}`;
+        title.textContent = (item.slot || item.kind) + ` (#${item.id})`;
+
+        const badge = document.createElement("span");
+        badge.className = `timeline-badge ${item.status}`;
+        badge.textContent = item.status;
+
+        header.append(title, badge);
+
+        const body = document.createElement("div");
+        body.className = "timeline-body";
+        let metaInfo = item.created_at;
+        if (item.superseded_at) {
+          metaInfo += ` · archived: ${item.superseded_at}`;
+        }
+        if (item.supersedes_id) {
+          metaInfo += ` · supersedes: #${item.supersedes_id}`;
+        }
+        body.innerHTML = `<div>${item.content}</div><div style="color: var(--text-dim); font-size: 10px; margin-top: 4px;">${metaInfo}</div>`;
+
+        div.append(header, body);
+        timelineContainer.append(div);
+      });
+    }
+
+    // Highlight PII in comparison view
+    function highlightPII(orig, redacted, redactions) {
+      piiOrigDisplay.replaceChildren();
+      piiRedactedDisplay.replaceChildren();
+
+      if (!redactions || !redactions.length) {
+        piiOrigDisplay.textContent = orig || "None";
+        piiRedactedDisplay.textContent = redacted || "None";
+        return;
+      }
+
+      // Display original with highlights
+      let highlightedOrig = orig;
+      redactions.forEach(r => {
+        highlightedOrig = highlightedOrig.replace(r.original, `<span class="pii-raw">${r.original}</span>`);
+      });
+      piiOrigDisplay.innerHTML = highlightedOrig;
+
+      // Display redacted with tokens
+      let highlightedRedacted = redacted;
+      redactions.forEach(r => {
+        highlightedRedacted = highlightedRedacted.replace(r.token, `<span class="pii-pill">${r.token}</span>`);
+      });
+      piiRedactedDisplay.innerHTML = highlightedRedacted;
+    }
+
+    document.getElementById("chatform").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = chatInput.value.trim();
+      if (!message || !sessionId) return;
+
+      // Append user bubble
+      const userBubble = document.createElement("div");
+      userBubble.className = "chat-bubble user";
+      userBubble.innerHTML = `<div>${message}</div><div class="chat-meta">You</div>`;
+      chatLog.append(userBubble);
+      chatLog.scrollTop = chatLog.scrollHeight;
+
+      sendBtn.disabled = true;
+      sendBtn.innerHTML = "Processing…";
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId, message }),
+        });
+        const data = await res.json();
+
+        // Update PII comparison
+        highlightPII(data.original_message || message, data.redacted_prompt || message, data.redactions || []);
+
+        // Append assistant bubble
+        const asstBubble = document.createElement("div");
+        asstBubble.className = "chat-bubble assistant";
+        const meta = [
+          "op: " + data.op,
+          data.model,
+          (data.latency_ms || 0) + " ms",
+          (data.prompt_tokens || 0) + "+" + (data.output_tokens || 0) + " tokens"
+        ].join(" · ");
+        asstBubble.innerHTML = `<div>${data.reply}</div><div class="chat-meta">${meta}</div>`;
+        chatLog.append(asstBubble);
+        chatLog.scrollTop = chatLog.scrollHeight;
+
+        // Render slots & timeline
+        renderActiveSlots(data.active || []);
+        renderTimeline(data.active || [], data.history || []);
+        chatInput.value = "";
+      } catch (err) {
+        const errBubble = document.createElement("div");
+        errBubble.className = "chat-bubble assistant";
+        errBubble.innerHTML = `<div style="color: #fca5a5;">Chat failed: ${err.message}</div>`;
+        chatLog.append(errBubble);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
