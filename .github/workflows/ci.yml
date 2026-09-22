@@ -1,0 +1,38 @@
+name: Enterprise AI Systems CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest fastapi uvicorn pydantic rank-bm25 google-genai httpx numpy sqlglot python-dotenv
+
+    - name: Run Test Suites
+      run: |
+        for dir in 01-cited-knowledge-agent 02-document-extraction 03-operator-agent 04-analytics-copilot 05-model-router 06-memory-service 07-claim-auditor 08-case-workflow 09-multi-hop-brief; do
+          if [ -d "$dir/tests" ]; then
+            echo "::group::Testing $dir"
+            PYTHONPATH="$dir" pytest "$dir/tests" -v
+            echo "::endgroup::"
+          fi
+        done

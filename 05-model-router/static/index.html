@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tiered Model Router — Enterprise AI Gateway</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card-bg: #121824;
+      --card-border: #1e293b;
+      --card-hover: #182234;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-blue: #3b82f6;
+      --code-bg: #070a10;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-heading: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(180deg, #161026 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--card-border);
+      padding: 32px 24px 28px;
+    }
+    .header-container, .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .top-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .kicker {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-purple);
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      padding: 3px 10px;
+      border-radius: 9999px;
+      display: inline-block;
+    }
+    .port-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .lede {
+      color: var(--text-muted);
+      max-width: 780px;
+      font-size: 15px;
+    }
+
+    .main-container {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Input & Samples */
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      background: var(--code-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      padding: 14px;
+      resize: vertical;
+      margin-bottom: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-purple);
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(147, 51, 234, 0.3);
+    }
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(147, 51, 234, 0.4);
+    }
+    .sample-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .sample-chip {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .sample-chip:hover {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #d8b4fe;
+    }
+
+    /* Decision Tree Visualizer */
+    .decision-tree-container {
+      margin-bottom: 24px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .tree-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      position: relative;
+    }
+    .tree-node {
+      background: #0d131f;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .tree-node.active {
+      border-color: var(--accent-purple);
+      background: rgba(168, 85, 247, 0.1);
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+    }
+    .tree-node.active-success {
+      border-color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+    }
+    .tree-node.active-circuit {
+      border-color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.1);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+    }
+    .node-step {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+      letter-spacing: 0.05em;
+    }
+    .node-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .node-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .node-status-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 8px;
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text-dim);
+    }
+    .node-status-badge.highlight {
+      background: var(--accent-purple);
+      color: #fff;
+    }
+    .node-status-badge.success {
+      background: var(--accent-green);
+      color: #fff;
+    }
+    .node-status-badge.warning {
+      background: var(--accent-amber);
+      color: #000;
+    }
+
+    /* Scorecard */
+    .scorecard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .scorecard-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px 20px;
+    }
+    .scorecard-card.highlight {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border-color: rgba(16, 185, 129, 0.35);
+    }
+    .scorecard-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .scorecard-value {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .scorecard-value.green { color: var(--accent-green); }
+    .scorecard-value.cyan { color: var(--accent-cyan); }
+    .scorecard-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Output & Reason */
+    .answer-card {
+      background: #0d131f;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .answer-header {
+      background: #121929;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .model-badge {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .model-badge.cheap {
+      background: rgba(6, 182, 212, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+    .model-badge.strong {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    .answer-body {
+      padding: 20px;
+    }
+    .answer-content {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .reason-box {
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 3px solid var(--accent-purple);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 900px) {
+      .tree-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 600px) {
+      .tree-grid {
+        grid-template-columns: 1fr;
+      }
+      .scorecard-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="top-badge-row">
+        <span class="kicker">05 / Model Router</span>
+        <span class="port-badge">port 8005 · Tiered Semantic Router &amp; Circuit Breaker</span>
+      </div>
+      <h1>Enterprise Tiered Model Router</h1>
+      <p class="lede">Cost-optimized AI dispatch engine. Combines sub-millisecond heuristic triage, semantic complexity scoring, dynamic model dispatch, and resilient circuit-breaker fallbacks.</p>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Query Tester -->
+    <section class="card">
+      <div class="card-title">
+        <span>Model Routing Console</span>
+        <span style="font-size: 12px; color: var(--text-dim);">Live Triage &amp; Economics</span>
+      </div>
+      <form id="rform">
+        <textarea id="task" rows="3" placeholder="Enter a prompt to analyze routing tier, complexity, and economics...">A shirt costs $40. It is discounted 25% then taxed 8% on the discounted price. What is the final price in dollars to the nearest cent?</textarea>
+        <div class="action-row">
+          <button type="submit" class="btn-submit" id="route-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+            Route &amp; Benchmark
+          </button>
+          <div class="sample-chips">
+            <button type="button" class="sample-chip" data-q="Hello, good morning!">Greeting (Heuristic Easy)</button>
+            <button type="button" class="sample-chip" data-q="What is the capital of Australia?">Factual (Heuristic Easy)</button>
+            <button type="button" class="sample-chip" data-q="A shirt costs $40. It is discounted 25% then taxed 8% on the discounted price. What is the final price in dollars to the nearest cent?">Math (Complexity Classifier)</button>
+            <button type="button" class="sample-chip" data-q="Write a python function to implement an LRU cache with O(1) get and put operations.">Code (Heuristic Complex)</button>
+            <button type="button" class="sample-chip" data-q="If all bloops are razzies and some razzies are fuzzies, are all bloops necessarily fuzzies? Explain step-by-step.">Logic (Semantic Complex)</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Results Section -->
+    <section class="card" id="results-card" style="display: none;">
+      <div class="card-title">
+        <span>Routing Decision &amp; Execution Tree</span>
+        <span style="font-size: 12px; color: var(--text-dim);" id="timestamp-label">Active</span>
+      </div>
+
+      <!-- Decision Tree Visualizer -->
+      <div class="decision-tree-container">
+        <div class="tree-grid">
+          <!-- Step 1 -->
+          <div class="tree-node" id="node-t1">
+            <div class="node-step">Tier 1</div>
+            <div class="node-title">Heuristic Triage</div>
+            <div class="node-desc">Sub-ms regex &amp; prompt length filter</div>
+            <div class="node-status-badge" id="badge-t1">Idle</div>
+          </div>
+          <!-- Step 2 -->
+          <div class="tree-node" id="node-t2">
+            <div class="node-step">Tier 2</div>
+            <div class="node-title">Semantic Classifier</div>
+            <div class="node-desc">Logic, math, code &amp; constraint scoring</div>
+            <div class="node-status-badge" id="badge-t2">Idle</div>
+          </div>
+          <!-- Step 3 -->
+          <div class="tree-node" id="node-t3">
+            <div class="node-step">Tier 3</div>
+            <div class="node-title">Model Dispatch</div>
+            <div class="node-desc">Flash / Flash-Lite vs Pro selection</div>
+            <div class="node-status-badge" id="badge-t3">Idle</div>
+          </div>
+          <!-- Step 4 -->
+          <div class="tree-node" id="node-t4">
+            <div class="node-step">Tier 4</div>
+            <div class="node-title">Circuit Breaker</div>
+            <div class="node-desc">Automated fallback &amp; retry resilience</div>
+            <div class="node-status-badge" id="badge-t4">Healthy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Economics Scorecard -->
+      <div class="card-title">
+        <span>Economics &amp; Latency Scorecard</span>
+        <span style="font-size: 12px; color: var(--text-dim);">Compared to 100% Frontier Model Baseline</span>
+      </div>
+      <div class="scorecard-grid">
+        <div class="scorecard-card highlight">
+          <div class="scorecard-label">Cost Savings</div>
+          <div class="scorecard-value green" id="sc-savings-pct">0.0%</div>
+          <div class="scorecard-sub" id="sc-savings-usd">Saved $0.000000</div>
+        </div>
+        <div class="scorecard-card">
+          <div class="scorecard-label">Latency (Execution)</div>
+          <div class="scorecard-value cyan" id="sc-latency">0 ms</div>
+          <div class="scorecard-sub">p50 target &lt; 200ms</div>
+        </div>
+        <div class="scorecard-card">
+          <div class="scorecard-label">Token Distribution</div>
+          <div class="scorecard-value" id="sc-tokens">0+0</div>
+          <div class="scorecard-sub" id="sc-tokens-saved">0 tokens saved</div>
+        </div>
+        <div class="scorecard-card">
+          <div class="scorecard-label">Routed Cost vs Baseline</div>
+          <div class="scorecard-value" id="sc-cost">$0.0000</div>
+          <div class="scorecard-sub" id="sc-baseline">Baseline: $0.0000</div>
+        </div>
+      </div>
+
+      <!-- Answer & Reason Box -->
+      <div class="answer-card">
+        <div class="answer-header">
+          <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">Model Output</span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="model-badge" id="res-model-badge">Dispatched Model</span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);" id="res-path">path</span>
+          </div>
+        </div>
+        <div class="answer-body">
+          <div class="answer-content" id="res-answer"></div>
+          <div class="reason-box" id="res-reason"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const taskInput = document.getElementById("task");
+    const routeBtn = document.getElementById("route-btn");
+    const resultsCard = document.getElementById("results-card");
+
+    // Scorecard elements
+    const scSavingsPct = document.getElementById("sc-savings-pct");
+    const scSavingsUsd = document.getElementById("sc-savings-usd");
+    const scLatency = document.getElementById("sc-latency");
+    const scTokens = document.getElementById("sc-tokens");
+    const scTokensSaved = document.getElementById("sc-tokens-saved");
+    const scCost = document.getElementById("sc-cost");
+    const scBaseline = document.getElementById("sc-baseline");
+
+    // Nodes
+    const nodeT1 = document.getElementById("node-t1");
+    const nodeT2 = document.getElementById("node-t2");
+    const nodeT3 = document.getElementById("node-t3");
+    const nodeT4 = document.getElementById("node-t4");
+    const badgeT1 = document.getElementById("badge-t1");
+    const badgeT2 = document.getElementById("badge-t2");
+    const badgeT3 = document.getElementById("badge-t3");
+    const badgeT4 = document.getElementById("badge-t4");
+
+    // Output elements
+    const resModelBadge = document.getElementById("res-model-badge");
+    const resPath = document.getElementById("res-path");
+    const resAnswer = document.getElementById("res-answer");
+    const resReason = document.getElementById("res-reason");
+
+    // Chips
+    document.querySelectorAll(".sample-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        taskInput.value = btn.dataset.q;
+        taskInput.focus();
+      });
+    });
+
+    document.getElementById("rform").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const task = taskInput.value.trim();
+      if (!task) return;
+
+      routeBtn.disabled = true;
+      routeBtn.innerHTML = 'Routing &amp; Executing…';
+      resultsCard.style.display = "block";
+
+      // Reset tree visuals
+      [nodeT1, nodeT2, nodeT3, nodeT4].forEach(n => n.className = "tree-node");
+      badgeT1.className = "node-status-badge"; badgeT1.textContent = "Analyzing…";
+      badgeT2.className = "node-status-badge"; badgeT2.textContent = "Waiting…";
+      badgeT3.className = "node-status-badge"; badgeT3.textContent = "Waiting…";
+      badgeT4.className = "node-status-badge"; badgeT4.textContent = "Standby";
+
+      resAnswer.textContent = "Routing task through tiered gateway…";
+      resReason.textContent = "Evaluating heuristic indicators and semantic complexity…";
+
+      try {
+        const res = await fetch("/route", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task }),
+        });
+        const data = await res.json();
+
+        // 1. Update Economics
+        scSavingsPct.textContent = (data.savings_percentage != null ? data.savings_percentage : 0) + "%";
+        scSavingsUsd.textContent = "Saved $" + (data.estimated_dollar_savings != null ? data.estimated_dollar_savings.toFixed(6) : "0.000000");
+        scLatency.textContent = (data.latency_ms || 0) + " ms";
+        scTokens.textContent = (data.prompt_tokens || 0) + " in · " + (data.output_tokens || 0) + " out";
+        scTokensSaved.textContent = (data.tokens_saved || 0) + " tokens saved";
+        scCost.textContent = "$" + (data.illustrative_cost_usd != null ? data.illustrative_cost_usd.toFixed(6) : "0.000000");
+        scBaseline.textContent = "Baseline: $" + (data.baseline_cost_usd != null ? data.baseline_cost_usd.toFixed(6) : "0.000000");
+
+        // 2. Update Decision Tree Visualizer
+        const tier = data.tier_used || "tier_1_heuristic";
+        if (tier === "tier_1_heuristic") {
+          nodeT1.className = "tree-node active";
+          badgeT1.className = "node-status-badge highlight";
+          badgeT1.textContent = "Matched: " + data.difficulty;
+          
+          nodeT2.className = "tree-node";
+          badgeT2.textContent = "Bypassed (Fast Path)";
+        } else if (tier === "tier_2_semantic_classifier") {
+          nodeT1.className = "tree-node";
+          badgeT1.textContent = "Ambiguous";
+          
+          nodeT2.className = "tree-node active";
+          badgeT2.className = "node-status-badge highlight";
+          badgeT2.textContent = "Score: " + (data.complexity_score != null ? data.complexity_score.toFixed(2) : data.confidence);
+        }
+
+        // Tier 3 Dispatch
+        nodeT3.className = "tree-node active-success";
+        badgeT3.className = "node-status-badge success";
+        badgeT3.textContent = data.model;
+
+        // Tier 4 Circuit Breaker
+        if (data.circuit_breaker_triggered) {
+          nodeT4.className = "tree-node active-circuit";
+          badgeT4.className = "node-status-badge warning";
+          badgeT4.textContent = "Triggered Fallback";
+        } else {
+          nodeT4.className = "tree-node";
+          badgeT4.className = "node-status-badge success";
+          badgeT4.textContent = "Normal / Healthy";
+        }
+
+        // 3. Answer & Metadata
+        resAnswer.textContent = data.answer || "(No textual answer returned)";
+        resReason.textContent = "Routing Decision: " + (data.reason || "Automatic tiered selection") + " · Path: " + data.path;
+        resPath.textContent = "Path: " + data.path + (data.verifier_score != null ? " (verifier: " + data.verifier_score + ")" : "");
+        
+        resModelBadge.textContent = data.model;
+        if (data.model.includes("flash") || data.model.includes("cheap") || data.model.includes("lite")) {
+          resModelBadge.className = "model-badge cheap";
+        } else {
+          resModelBadge.className = "model-badge strong";
+        }
+
+      } catch (err) {
+        resAnswer.textContent = "Routing request failed.";
+        resReason.textContent = err.message || "Network / server error";
+      } finally {
+        routeBtn.disabled = false;
+        routeBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+          Route &amp; Benchmark
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

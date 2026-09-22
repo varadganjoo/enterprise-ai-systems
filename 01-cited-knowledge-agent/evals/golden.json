@@ -1,0 +1,56 @@
+[
+  {
+    "id": "pto-current",
+    "question": "How many PTO days does a full-time employee get under the current policy?",
+    "expect_refused": false,
+    "source": "pto-2026.md",
+    "answer_contains": ["20"]
+  },
+  {
+    "id": "pto-2024",
+    "question": "How many PTO days did the 2024 policy accrue?",
+    "expect_refused": false,
+    "source": "pto-2024.md",
+    "answer_contains": ["15"]
+  },
+  {
+    "id": "expense-approval",
+    "question": "Who must approve an expense over $1000, and when?",
+    "expect_refused": false,
+    "source": "expenses.md",
+    "answer_contains": ["director"]
+  },
+  {
+    "id": "first-class",
+    "question": "Is first-class airfare reimbursable?",
+    "expect_refused": false,
+    "source": "expenses.md",
+    "answer_contains": ["not reimbursable"]
+  },
+  {
+    "id": "per-diem",
+    "question": "What is the domestic meal per-diem?",
+    "expect_refused": false,
+    "source": "travel.md",
+    "answer_contains": ["70"]
+  },
+  {
+    "id": "password-rotation",
+    "question": "How often must employee passwords be rotated?",
+    "expect_refused": false,
+    "source": "security.md",
+    "answer_contains": ["90"]
+  },
+  {
+    "id": "laptop",
+    "question": "What laptop do new hires receive?",
+    "expect_refused": false,
+    "source": "onboarding.md",
+    "answer_contains": ["14-inch", "32 GB"]
+  },
+  {
+    "id": "off-topic",
+    "question": "What is the capital of France?",
+    "expect_refused": true
+  }
+]

@@ -1,0 +1,12 @@
+HARBOR STUDIO SUPPLY
+Invoice INV-3188
+Purchase order PO-3188
+Date: 2026-01-09
+Currency: USD
+
+Notebook  3  12.00  36.00
+Pen set   2   8.50  17.00
+
+Subtotal 53.00
+Tax 4.24
+Total 57.24

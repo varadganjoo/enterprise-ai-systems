@@ -1,0 +1,20 @@
+[project]
+name = "cited-knowledge-agent"
+version = "0.1.0"
+description = "Handbook Q&A that answers only with verbatim citations, plus a retrieval eval."
+requires-python = ">=3.11"
+dependencies = [
+  "google-genai==2.24.0",
+  "pydantic==2.13.5",
+  "python-dotenv==1.2.3",
+  "fastapi==0.141.1",
+  "uvicorn[standard]==0.53.0",
+  "rank-bm25==0.2.2",
+  "numpy==2.4.6",
+]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

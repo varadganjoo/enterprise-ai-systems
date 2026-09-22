@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cited Knowledge Agent · Grounded Handbook Retrieval</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --card: #151821;
+      --card-alt: #1c202c;
+      --border: #262c3d;
+      --border-focus: #3b82f6;
+      --ink: #f1f5f9;
+      --ink-muted: #94a3b8;
+      --ink-subtle: #64748b;
+      --accent: #38bdf8;
+      --good: #10b981;
+      --good-bg: rgba(16, 185, 129, 0.12);
+      --good-border: rgba(16, 185, 129, 0.3);
+      --warn: #f59e0b;
+      --warn-bg: rgba(245, 158, 11, 0.12);
+      --warn-border: rgba(245, 158, 11, 0.3);
+      --bad: #f43f5e;
+      --bad-bg: rgba(244, 63, 94, 0.12);
+      --bad-border: rgba(244, 63, 94, 0.3);
+      --highlight: #fef08a;
+      --highlight-ink: #1e1b4b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    header, main {
+      width: min(1200px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+    header {
+      padding: 32px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .kicker {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .kicker::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: var(--good-bg);
+      border: 1px solid var(--good-border);
+      color: var(--good);
+    }
+    .badge-status.refused {
+      background: var(--bad-bg);
+      border-color: var(--bad-border);
+      color: var(--bad);
+    }
+    h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 650;
+      font-size: clamp(32px, 4.5vw, 48px);
+      line-height: 1.05;
+      margin: 4px 0 10px;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      max-width: 75ch;
+      color: var(--ink-muted);
+      margin: 0;
+      font-size: 15px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 24px;
+      padding-bottom: 60px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-muted);
+      margin-bottom: 8px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0d0f14;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    button.btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: 0;
+      border-radius: 6px;
+      padding: 9px 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button.btn-primary:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+    button.btn-primary:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .sample-btn {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      color: var(--ink-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sample-btn:hover {
+      background: #232838;
+      color: var(--ink);
+      border-color: var(--ink-subtle);
+    }
+    .answer-card {
+      margin-top: 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      background: #11141c;
+    }
+    .answer-card.refused-card {
+      border-color: var(--bad-border);
+      background: rgba(244, 63, 94, 0.04);
+    }
+    .answer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .answer-card h2, .panel h2 {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 20px;
+      margin: 0;
+      color: #ffffff;
+    }
+    .answer-body {
+      font-size: 16px;
+      line-height: 1.65;
+      color: #e2e8f0;
+      margin-bottom: 16px;
+    }
+    .refused-text {
+      color: #fb7185;
+      font-weight: 500;
+    }
+    .conflict-banner {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #fde68a;
+    }
+    .conflict-banner strong {
+      color: #fef08a;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .citations-section {
+      margin-top: 18px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+    .section-subtitle {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .citation-chips {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .citation-chip {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .citation-chip:hover, .citation-chip.active {
+      border-color: var(--accent);
+      background: #1e2538;
+      transform: translateX(3px);
+    }
+    .chip-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .chip-quote {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      color: #f1f5f9;
+      margin: 0;
+      line-height: 1.4;
+    }
+    .chip-span {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10px;
+      color: var(--ink-subtle);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .telemetry-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-muted);
+      background: #0d0f14;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+    }
+    .telemetry-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .telemetry-item span {
+      color: var(--ink);
+      font-weight: 500;
+    }
+    .hit-card {
+      background: #0e1118;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
+      transition: all 0.25s ease;
+    }
+    .hit-card.highlighted-chunk {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.2);
+    }
+    .hit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .hit-title {
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 600;
+      font-size: 13px;
+      color: #38bdf8;
+    }
+    .hit-scores {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      color: var(--ink-subtle);
+    }
+    .hit-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #94a3b8;
+      background: #08090d;
+      border: 1px solid #1a1e2a;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    mark.quote-highlight {
+      background: var(--highlight);
+      color: var(--highlight-ink);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .error-msg {
+      color: #fb7185;
+      font-size: 13px;
+      margin-top: 8px;
+      display: none;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <div class="kicker">Cluster 1 / Retrieval & Grounding · Port 8001</div>
+      <div class="badge-status" id="sys-badge">VERIFIED CITATIONS ACTIVE</div>
+    </div>
+    <h1>Cited Knowledge Agent</h1>
+    <p class="lede">Answers strictly from the corporate handbook. Citations are mathematically checked before generation leaves process: verbatim substring required, character-level offsets verified, and superseded policies blocked.</p>
+  </header>
+  <main class="layout">
+    <section>
+      <div class="panel">
+        <form id="ask-form">
+          <label for="question">Inquiry / Question</label>
+          <textarea id="question" name="question" required maxlength="2000">How many PTO days does a full-time employee get under the current policy?</textarea>
+          <div class="row-actions">
+            <button type="submit" class="btn-primary" id="submit">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              Verify & Answer
+            </button>
+            <button type="button" class="sample-btn" data-q="How many PTO days does a full-time employee get under the current policy?">Current PTO</button>
+            <button type="button" class="sample-btn" data-q="How many PTO days did the 2024 policy accrue?">2024 policy (Historical)</button>
+            <button type="button" class="sample-btn" data-q="What is the capital of France?">Off-handbook test</button>
+          </div>
+        </form>
+
+        <div id="error" class="error-msg"></div>
+
+        <article class="answer-card" id="answer-card" style="display: none;">
+          <div class="answer-header">
+            <h2>Grounded Answer</h2>
+            <div class="badge-status" id="answer-badge">VERIFIED</div>
+          </div>
+          <div id="conflicts"></div>
+          <div class="answer-body" id="answer-text"></div>
+          <div class="citations-section" id="citations-section" style="display: none;">
+            <div class="section-subtitle">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Verified Citations (Click to inspect source chunk)
+            </div>
+            <div class="citation-chips" id="citation-chips"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <aside>
+      <div class="panel">
+        <h2>Evidence Dossier</h2>
+        <p class="lede" style="font-size: 13px; margin-bottom: 12px;">Retrieved chunks with BM25 + Vector reciprocal rank fusion (RRF) and verbatim span offsets.</p>
+        <div class="telemetry-bar" id="telemetry-bar">
+          <div class="telemetry-item">Model: <span id="tel-model">—</span></div>
+          <div class="telemetry-item">Latency: <span id="tel-latency">—</span></div>
+          <div class="telemetry-item">Tokens: <span id="tel-tokens">—</span></div>
+          <div class="telemetry-item">Dropped: <span id="tel-dropped">—</span></div>
+        </div>
+        <div id="hits-container">
+          <div style="color: var(--ink-subtle); font-size: 13px; text-align: center; padding: 24px 0;">
+            Evidence chunks will appear here after query execution.
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const form = document.querySelector("#ask-form");
+    const question = document.querySelector("#question");
+    const submit = document.querySelector("#submit");
+    const answerCard = document.querySelector("#answer-card");
+    const answerText = document.querySelector("#answer-text");
+    const answerBadge = document.querySelector("#answer-badge");
+    const conflicts = document.querySelector("#conflicts");
+    const citationsSection = document.querySelector("#citations-section");
+    const citationChips = document.querySelector("#citation-chips");
+    const hitsContainer = document.querySelector("#hits-container");
+    const errorEl = document.querySelector("#error");
+
+    const telModel = document.querySelector("#tel-model");
+    const telLatency = document.querySelector("#tel-latency");
+    const telTokens = document.querySelector("#tel-tokens");
+    const telDropped = document.querySelector("#tel-dropped");
+
+    let currentCitations = [];
+    let currentHits = [];
+
+    document.querySelectorAll(".sample-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        question.value = btn.dataset.q;
+        question.focus();
+      });
+    });
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function highlightSpan(fullText, startChar, endChar) {
+      if (!fullText) return "";
+      if (startChar >= 0 && endChar > startChar && endChar <= fullText.length) {
+        const before = escapeHtml(fullText.slice(0, startChar));
+        const highlighted = escapeHtml(fullText.slice(startChar, endChar));
+        const after = escapeHtml(fullText.slice(endChar));
+        return before + '<mark class="quote-highlight">' + highlighted + '</mark>' + after;
+      }
+      return escapeHtml(fullText);
+    }
+
+    function renderHits(activeChunkId = null, activeCitation = null) {
+      hitsContainer.replaceChildren();
+      if (!currentHits || currentHits.length === 0) {
+        const empty = document.createElement("div");
+        empty.style.color = "var(--ink-subtle)";
+        empty.style.fontSize = "13px";
+        empty.textContent = "No retrieval hits returned.";
+        hitsContainer.append(empty);
+        return;
+      }
+
+      for (const hit of currentHits) {
+        const card = document.createElement("div");
+        card.className = "hit-card" + (hit.chunk_id === activeChunkId ? " highlighted-chunk" : "");
+        card.id = "hit-" + hit.chunk_id;
+
+        const header = document.createElement("div");
+        header.className = "hit-header";
+
+        const title = document.createElement("span");
+        title.className = "hit-title";
+        title.textContent = hit.source + (hit.title ? " · " + hit.title : "");
+
+        const scores = document.createElement("span");
+        scores.className = "hit-scores";
+        scores.textContent = `RRF ${hit.score} | BM25 #${hit.bm25_rank} | Vec #${hit.vector_rank}`;
+
+        header.append(title, scores);
+
+        const textDiv = document.createElement("div");
+        textDiv.className = "hit-text";
+
+        if (activeCitation && activeCitation.chunk_id === hit.chunk_id && hit.text) {
+          textDiv.innerHTML = highlightSpan(hit.text, activeCitation.start_char, activeCitation.end_char);
+        } else if (hit.text) {
+          // Check if any citation matches this chunk
+          const matchedCit = currentCitations.find(c => c.chunk_id === hit.chunk_id);
+          if (matchedCit) {
+            textDiv.innerHTML = highlightSpan(hit.text, matchedCit.start_char, matchedCit.end_char);
+          } else {
+            textDiv.textContent = hit.text;
+          }
+        } else {
+          textDiv.textContent = "(Source text available in corpus)";
+        }
+
+        card.append(header, textDiv);
+        hitsContainer.append(card);
+      }
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEl.style.display = "none";
+      submit.disabled = true;
+      answerCard.style.display = "none";
+
+      try {
+        const res = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: question.value })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorEl.textContent = data.detail || "Verification request failed.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        currentCitations = data.citations || [];
+        currentHits = data.retrieval || [];
+
+        // Telemetry
+        telModel.textContent = data.model || "gemini-2.5-flash";
+        telLatency.textContent = data.latency_ms + " ms";
+        telTokens.textContent = `${data.prompt_tokens} in / ${data.output_tokens} out`;
+        telDropped.textContent = data.dropped_citations;
+
+        // Answer
+        answerCard.style.display = "block";
+        answerCard.className = "answer-card" + (data.refused ? " refused-card" : "");
+        answerText.textContent = data.answer;
+        answerText.className = data.refused ? "refused-text" : "answer-body";
+
+        if (data.refused) {
+          answerBadge.className = "badge-status refused";
+          answerBadge.textContent = "REFUSED · UNVERIFIED";
+        } else {
+          answerBadge.className = "badge-status";
+          answerBadge.textContent = "VERIFIED · GROUNDED";
+        }
+
+        // Conflicts
+        conflicts.replaceChildren();
+        if (data.conflicts && data.conflicts.length > 0) {
+          for (const conf of data.conflicts) {
+            const banner = document.createElement("div");
+            banner.className = "conflict-banner";
+            banner.innerHTML = `<strong>Policy Conflict Detected (${escapeHtml(conf.topic)}):</strong>
+              Governing source is <code>${escapeHtml(conf.current_source)}</code>. Superseded source <code>${escapeHtml(conf.superseded_source)}</code> was suppressed.`;
+            conflicts.append(banner);
+          }
+        }
+
+        // Citations
+        citationChips.replaceChildren();
+        if (currentCitations.length > 0) {
+          citationsSection.style.display = "block";
+          currentCitations.forEach((cit, idx) => {
+            const chip = document.createElement("div");
+            chip.className = "citation-chip";
+            chip.dataset.index = idx;
+
+            const meta = document.createElement("div");
+            meta.className = "chip-meta";
+            meta.innerHTML = `<span>${escapeHtml(cit.source)}</span><span class="chip-span">[${cit.start_char}:${cit.end_char}]</span>`;
+
+            const quote = document.createElement("p");
+            quote.className = "chip-quote";
+            quote.textContent = `“${cit.quote}”`;
+
+            chip.append(meta, quote);
+
+            chip.addEventListener("click", () => {
+              document.querySelectorAll(".citation-chip").forEach(c => c.classList.remove("active"));
+              chip.classList.add("active");
+              renderHits(cit.chunk_id, cit);
+              const target = document.querySelector("#hit-" + cit.chunk_id);
+              if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            });
+
+            citationChips.append(chip);
+          });
+        } else {
+          citationsSection.style.display = "none";
+        }
+
+        renderHits();
+
+      } catch (err) {
+        errorEl.textContent = "Network error: Unable to communicate with the knowledge agent.";
+        errorEl.style.display = "block";
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

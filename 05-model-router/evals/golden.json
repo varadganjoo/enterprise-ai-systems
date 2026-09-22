@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sentiment",
+    "difficulty": "easy",
+    "task": "Classify the sentiment of this sentence as positive or negative: I love this laptop.",
+    "expect": "positive"
+  },
+  {
+    "id": "date",
+    "difficulty": "easy",
+    "task": "Extract the ISO date from this sentence and return only the date: The meeting is on 2026-04-02.",
+    "expect": "2026-04-02"
+  },
+  {
+    "id": "shirt",
+    "difficulty": "hard",
+    "task": "A shirt costs $40. It is discounted 25% then taxed 8% on the discounted price. What is the final price in dollars to the nearest cent?",
+    "expect": "32.40"
+  },
+  {
+    "id": "crates",
+    "difficulty": "hard",
+    "task": "Crate B has 3 apples. Crate A has 4 more apples than crate B. Crate C has twice as many apples as crate A. How many apples are there in total? Return only the number.",
+    "expect": "24"
+  }
+]

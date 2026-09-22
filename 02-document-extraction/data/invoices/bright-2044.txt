@@ -1,0 +1,12 @@
+BR1GHT PAPER CO
+lnvoice Number: INV-2044
+Purchase order PO-2044
+Date: February 11, 2026
+Currency: USD
+
+Ream of paper    4    20.00    80.00
+Ink cartridge    1    40.00    40.00
+
+Subtotal 120.00
+Tax 8.40
+Total 128.40

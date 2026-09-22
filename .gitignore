@@ -1,0 +1,36 @@
+# Python environment
+.venv/
+env/
+venv/
+ENV/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest & test cache
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# SQLite databases & transient storage
+*.db
+*.sqlite
+*.sqlite3
+data/cache/
+*.log
+
+# Legacy code archive
+old_code/
+
+# OS metadata
+.DS_Store
+Thumbs.db

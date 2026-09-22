@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event-Sourced Dispute State Machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c1017;
+      --card-bg: #151b23;
+      --card-border: #21262d;
+      --card-hover: #1c2128;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #2f81f7;
+      --accent-hover: #388bfd;
+      --success-bg: rgba(46, 160, 67, 0.15);
+      --success-border: #2ea043;
+      --success-text: #3fb950;
+      --warn-bg: rgba(210, 153, 34, 0.15);
+      --warn-border: #d29922;
+      --warn-text: #e3b341;
+      --danger-bg: rgba(248, 81, 73, 0.15);
+      --danger-border: #f85149;
+      --danger-text: #ff7b72;
+      --purple-bg: rgba(163, 113, 247, 0.15);
+      --purple-border: #a371f7;
+      --purple-text: #d2a8ff;
+      --mono-font: "IBM Plex Mono", monospace;
+      --sans-font: "Inter", sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--sans-font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .brand-wrap { display: flex; align-items: center; gap: 14px; }
+    .badge-lead {
+      background: rgba(47, 129, 247, 0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--mono-font);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--mono-font);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--success-text);
+      box-shadow: 0 0 8px var(--success-text);
+    }
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.01);
+    }
+    .panel-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .panel-body { padding: 18px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Buttons & Inputs */
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary { background: #21262d; color: var(--text-main); border: 1px solid var(--card-border); }
+    .btn-secondary:hover { background: #30363d; }
+    .btn-success { background: #238636; color: #fff; }
+    .btn-success:hover { background: #2ea043; }
+    .btn-danger { background: #da3633; color: #fff; }
+    .btn-danger:hover { background: #f85149; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    textarea {
+      background: var(--bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      font-family: var(--sans-font);
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 6px;
+      outline: none;
+      width: 100%;
+      min-height: 80px;
+    }
+    textarea:focus { border-color: var(--accent); }
+
+    .chip-btn {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-family: var(--mono-font);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip-btn:hover { border-color: var(--accent); color: var(--text-main); }
+
+    /* State Machine Stepper */
+    .stepper-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      padding: 10px 0;
+      margin-bottom: 8px;
+    }
+    .stepper-line {
+      position: absolute;
+      top: 24px;
+      left: 30px;
+      right: 30px;
+      height: 3px;
+      background: var(--card-border);
+      z-index: 1;
+    }
+    .stepper-line-fill {
+      position: absolute;
+      top: 24px;
+      left: 30px;
+      height: 3px;
+      background: var(--accent);
+      z-index: 2;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .step-node {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 80px;
+    }
+    .node-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono-font);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .step-node.active .node-circle {
+      border-color: var(--accent);
+      color: var(--text-main);
+      background: rgba(47, 129, 247, 0.15);
+      box-shadow: 0 0 12px rgba(47, 129, 247, 0.4);
+    }
+    .step-node.completed .node-circle {
+      border-color: var(--success-border);
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+    .step-node.rejected .node-circle {
+      border-color: var(--danger-border);
+      background: var(--danger-bg);
+      color: var(--danger-text);
+    }
+    .node-label {
+      font-family: var(--mono-font);
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+    .step-node.active .node-label { color: var(--accent); font-weight: 600; }
+    .step-node.completed .node-label { color: var(--success-text); }
+    .step-node.rejected .node-label { color: var(--danger-text); }
+
+    /* Cap Indicator */
+    .cap-box {
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cap-bar-track {
+      width: 100%;
+      height: 8px;
+      background: #090d13;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #1e2633;
+    }
+    .cap-bar-fill {
+      height: 100%;
+      background: var(--success-text);
+      transition: width 0.3s ease, background-color 0.3s ease;
+      width: 0%;
+    }
+    .cap-bar-fill.exceeded { background: var(--danger-text); }
+
+    /* Event History Table */
+    .event-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .event-table th {
+      text-align: left;
+      padding: 8px 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .event-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-family: var(--mono-font);
+    }
+    .event-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-open { background: rgba(56, 139, 253, 0.15); color: #58a6ff; }
+    .badge-classify { background: rgba(163, 113, 247, 0.15); color: #d2a8ff; }
+    .badge-propose { background: var(--warn-bg); color: var(--warn-text); }
+    .badge-approve { background: var(--success-bg); color: var(--success-text); }
+    .badge-reject { background: var(--danger-bg); color: var(--danger-text); }
+    .badge-execute { background: rgba(35, 134, 54, 0.2); color: #3fb950; border: 1px solid #2ea043; }
+
+    .error-banner {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger-text);
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: var(--mono-font);
+      font-size: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-wrap">
+      <span class="badge-lead">08 / CASE-WORKFLOW</span>
+      <h1>Event-Sourced Dispute State Machine</h1>
+    </div>
+    <div class="header-meta">
+      <div class="meta-chip"><span class="pulse-dot"></span> Event Engine Online</div>
+      <div class="meta-chip">Execution Invariant: <strong>Strict Approval Gate</strong></div>
+      <div class="meta-chip">Caps: <strong>Duplicate $500 | Goodwill $25 | Shipping $40</strong></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- TOP SECTION: CASE INTAKE FORM -->
+    <section class="panel">
+      <div class="panel-header">
+        <span class="panel-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Dispute Intake
+        </span>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span style="font-size: 12px; color: var(--text-muted);">Quick Scenarios:</span>
+          <button class="chip-btn" type="button" onclick="setScenario('duplicate')">Duplicate Charge ($80 - Valid)</button>
+          <button class="chip-btn" type="button" onclick="setScenario('goodwill_over')">Goodwill ($200 - Cap Exceeded)</button>
+          <button class="chip-btn" type="button" onclick="setScenario('shipping')">Late Shipping ($35 - Valid)</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <form id="openForm" style="display: flex; flex-direction: column; gap: 12px;">
+          <label for="narrativeInput" style="font-size: 13px; font-weight: 500; color: var(--text-muted);">Customer Dispute Narrative:</label>
+          <textarea id="narrativeInput">The customer was charged twice for order #4089. The duplicate was $80.00.</textarea>
+          <div>
+            <button id="openBtn" class="btn" type="submit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Open Case & Run Classification
+            </button>
+          </div>
+        </form>
+        <div id="errorBanner" class="error-banner"></div>
+      </div>
+    </section>
+
+    <!-- MIDDLE SECTION: STATE MACHINE PROGRESS & CAP GAUGE -->
+    <section class="panel">
+      <div class="panel-header">
+        <span class="panel-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          State Machine Lifecycle & Policy Enforcement
+        </span>
+        <span id="caseIdDisplay" style="font-family: var(--mono-font); font-size: 12px; color: var(--text-muted);">No active case</span>
+      </div>
+      <div class="panel-body">
+        <!-- Visual State Machine Stepper -->
+        <div class="stepper-wrap">
+          <div class="stepper-line"></div>
+          <div id="stepperLineFill" class="stepper-line-fill"></div>
+
+          <div id="step-empty" class="step-node active">
+            <div class="node-circle">0</div>
+            <div class="node-label">Empty</div>
+          </div>
+          <div id="step-intake" class="step-node">
+            <div class="node-circle">1</div>
+            <div class="node-label">Intake</div>
+          </div>
+          <div id="step-classified" class="step-node">
+            <div class="node-circle">2</div>
+            <div class="node-label">Classified</div>
+          </div>
+          <div id="step-proposed" class="step-node">
+            <div class="node-circle">3</div>
+            <div class="node-label">Proposed</div>
+          </div>
+          <div id="step-decision" class="step-node">
+            <div class="node-circle">&bull;</div>
+            <div id="decisionNodeLabel" class="node-label">Approved</div>
+          </div>
+          <div id="step-executed" class="step-node">
+            <div class="node-circle">&check;</div>
+            <div class="node-label">Executed</div>
+          </div>
+        </div>
+
+        <!-- Cap Indicator & Case Metrics -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="cap-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+              <span style="font-weight: 500;">Policy Cap Monitor</span>
+              <span id="capRatioText" style="font-family: var(--mono-font); font-size: 12px; color: var(--text-muted);">$0.00 / $0.00</span>
+            </div>
+            <div class="cap-bar-track">
+              <div id="capBarFill" class="cap-bar-fill"></div>
+            </div>
+            <div id="capNoteText" style="font-size: 11px; color: var(--text-muted); font-family: var(--mono-font);">
+              Select or open a dispute case.
+            </div>
+          </div>
+
+          <div class="cap-box" style="justify-content: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+              <span style="font-weight: 500;">Current State</span>
+              <span id="stateBadge" class="event-badge badge-open" style="font-size: 12px;">EMPTY</span>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 10px;">
+              <button id="approveBtn" class="btn btn-success btn-sm" type="button" style="flex: 1;" disabled>
+                &check; Approve
+              </button>
+              <button id="rejectBtn" class="btn btn-danger btn-sm" type="button" style="flex: 1;" disabled>
+                &times; Reject
+              </button>
+              <button id="executeBtn" class="btn btn-sm" type="button" style="flex: 1; background: #2ea043;" disabled>
+                &dollar; Execute Refund
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTTOM SECTION: IMMUTABLE EVENT STREAM AUDIT -->
+    <section class="panel">
+      <div class="panel-header">
+        <span class="panel-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Immutable Event Stream (Audit Log)
+        </span>
+        <span id="eventCountBadge" class="event-badge badge-classify">0 Events</span>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="event-table">
+          <thead>
+            <tr>
+              <th>Pos</th>
+              <th>Event ID</th>
+              <th>Event Type</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="eventStreamBody">
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No events recorded. Open a case above.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let currentCaseId = "";
+    const openForm = document.getElementById("openForm");
+    const narrativeInput = document.getElementById("narrativeInput");
+    const openBtn = document.getElementById("openBtn");
+    const errorBanner = document.getElementById("errorBanner");
+    const caseIdDisplay = document.getElementById("caseIdDisplay");
+    const stepperLineFill = document.getElementById("stepperLineFill");
+    const capRatioText = document.getElementById("capRatioText");
+    const capBarFill = document.getElementById("capBarFill");
+    const capNoteText = document.getElementById("capNoteText");
+    const stateBadge = document.getElementById("stateBadge");
+    const approveBtn = document.getElementById("approveBtn");
+    const rejectBtn = document.getElementById("rejectBtn");
+    const executeBtn = document.getElementById("executeBtn");
+    const eventStreamBody = document.getElementById("eventStreamBody");
+    const eventCountBadge = document.getElementById("eventCountBadge");
+    const decisionNodeLabel = document.getElementById("decisionNodeLabel");
+
+    const steps = ["empty", "intake", "classified", "proposed", "decision", "executed"];
+
+    function setScenario(type) {
+      if (type === "duplicate") {
+        narrativeInput.value = "The customer was charged twice for order #4089. The duplicate was $80.00.";
+      } else if (type === "goodwill_over") {
+        narrativeInput.value = "Please offer a goodwill refund of $200.00 for the prolonged shipment delay.";
+      } else if (type === "shipping") {
+        narrativeInput.value = "Package was delivered 5 days late. Refund the $35.00 express shipping fee.";
+      }
+    }
+
+    function updateStepper(status) {
+      // Clear previous classes
+      steps.forEach(s => {
+        const el = document.getElementById(`step-${s}`);
+        if (el) {
+          el.className = "step-node";
+        }
+      });
+
+      const fill = stepperLineFill;
+      if (status === "empty") {
+        document.getElementById("step-empty").classList.add("active");
+        fill.style.width = "0%";
+      } else if (status === "intake") {
+        document.getElementById("step-empty").classList.add("completed");
+        document.getElementById("step-intake").classList.add("active");
+        fill.style.width = "20%";
+      } else if (status === "classified") {
+        document.getElementById("step-empty").classList.add("completed");
+        document.getElementById("step-intake").classList.add("completed");
+        document.getElementById("step-classified").classList.add("active");
+        fill.style.width = "40%";
+      } else if (status === "proposed") {
+        document.getElementById("step-empty").classList.add("completed");
+        document.getElementById("step-intake").classList.add("completed");
+        document.getElementById("step-classified").classList.add("completed");
+        document.getElementById("step-proposed").classList.add("active");
+        fill.style.width = "60%";
+      } else if (status === "approved") {
+        document.getElementById("step-empty").classList.add("completed");
+        document.getElementById("step-intake").classList.add("completed");
+        document.getElementById("step-classified").classList.add("completed");
+        document.getElementById("step-proposed").classList.add("completed");
+        const decNode = document.getElementById("step-decision");
+        decNode.classList.add("completed");
+        decisionNodeLabel.textContent = "Approved";
+        fill.style.width = "80%";
+      } else if (status === "rejected") {
+        document.getElementById("step-empty").classList.add("completed");
+        document.getElementById("step-intake").classList.add("completed");
+        document.getElementById("step-classified").classList.add("completed");
+        document.getElementById("step-proposed").classList.add("completed");
+        const decNode = document.getElementById("step-decision");
+        decNode.classList.add("rejected");
+        decisionNodeLabel.textContent = "Rejected";
+        fill.style.width = "80%";
+      } else if (status === "executed") {
+        document.getElementById("step-empty").classList.add("completed");
+        document.getElementById("step-intake").classList.add("completed");
+        document.getElementById("step-classified").classList.add("completed");
+        document.getElementById("step-proposed").classList.add("completed");
+        document.getElementById("step-decision").classList.add("completed");
+        document.getElementById("step-executed").classList.add("completed");
+        fill.style.width = "100%";
+      }
+    }
+
+    function renderCase(data) {
+      currentCaseId = data.case_id || currentCaseId;
+      caseIdDisplay.textContent = `Case: ${currentCaseId}`;
+
+      // Update State Badge
+      stateBadge.textContent = (data.status || "empty").toUpperCase();
+      stateBadge.className = `event-badge badge-${data.status || 'open'}`;
+
+      // Update Stepper
+      updateStepper(data.status || "empty");
+
+      // Cap indicator
+      const cap = data.cap || (data.caps && data.reason ? data.caps[data.reason] : null);
+      const amount = data.amount != null ? data.amount : 0;
+      if (cap != null) {
+        capRatioText.textContent = `$${amount.toFixed(2)} / $${cap.toFixed(2)} limit`;
+        const pct = Math.min(100, Math.round((amount / cap) * 100));
+        capBarFill.style.width = `${pct}%`;
+        if (amount > cap) {
+          capBarFill.classList.add("exceeded");
+          capNoteText.textContent = `ALERT: Proposed amount $${amount.toFixed(2)} exceeds allowable ${data.reason} cap of $${cap.toFixed(2)}!`;
+          capNoteText.style.color = "var(--danger-text)";
+        } else {
+          capBarFill.classList.remove("exceeded");
+          capNoteText.textContent = `Category: ${data.reason} (Cap: $${cap.toFixed(2)}). Amount is within policy limit.`;
+          capNoteText.style.color = "var(--text-muted)";
+        }
+      } else {
+        capRatioText.textContent = amount > 0 ? `$${amount.toFixed(2)} (No cap set)` : "$0.00 / $0.00";
+        capBarFill.style.width = "0%";
+        capNoteText.textContent = data.reason ? `Category: ${data.reason}` : "Category not yet classified.";
+        capNoteText.style.color = "var(--text-muted)";
+      }
+
+      // Action buttons
+      approveBtn.disabled = data.status !== "proposed";
+      rejectBtn.disabled = data.status !== "proposed";
+      executeBtn.disabled = data.status !== "approved";
+
+      // Error banner
+      if (data.error) {
+        errorBanner.style.display = "block";
+        errorBanner.textContent = "Policy / Invariant Error: " + data.error;
+      } else {
+        errorBanner.style.display = "none";
+      }
+
+      // Event stream
+      renderEvents(data.events || []);
+    }
+
+    function renderEvents(events) {
+      eventStreamBody.replaceChildren();
+      eventCountBadge.textContent = `${events.length} Events`;
+      if (!events.length) {
+        eventStreamBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No events recorded.</td></tr>`;
+        return;
+      }
+      events.forEach((ev, idx) => {
+        const tr = document.createElement("tr");
+        const badgeClass = `badge-${ev.event_type}`;
+        tr.innerHTML = `
+          <td>#${ev.position || idx + 1}</td>
+          <td style="color: var(--text-muted);">${ev.event_id}</td>
+          <td><span class="event-badge ${badgeClass}">${ev.event_type}</span></td>
+          <td>${ev.reason || "-"}</td>
+          <td>${ev.amount > 0 ? '$' + ev.amount.toFixed(2) : '-'}</td>
+          <td style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ev.note || "-"}</td>
+        `;
+        eventStreamBody.appendChild(tr);
+      });
+    }
+
+    openForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const narrative = narrativeInput.value.trim();
+      if (!narrative) return;
+
+      openBtn.disabled = true;
+      openBtn.textContent = "Opening & Classifying…";
+      errorBanner.style.display = "none";
+
+      try {
+        const res = await fetch("/cases", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ narrative })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorBanner.style.display = "block";
+          errorBanner.textContent = data.detail || "Failed to open case.";
+          return;
+        }
+        renderCase(data);
+      } catch (err) {
+        errorBanner.style.display = "block";
+        errorBanner.textContent = "Network error: " + err.message;
+      } finally {
+        openBtn.disabled = false;
+        openBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Open Case & Run Classification
+        `;
+      }
+    });
+
+    async function sendTransition(path, body = {}) {
+      if (!currentCaseId) return;
+      try {
+        const res = await fetch(`/cases/${currentCaseId}${path}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorBanner.style.display = "block";
+          errorBanner.textContent = "Transition Error: " + (data.detail || "Refused by state machine");
+          return;
+        }
+        renderCase(data);
+      } catch (err) {
+        errorBanner.style.display = "block";
+        errorBanner.textContent = "Network error: " + err.message;
+      }
+    }
+
+    approveBtn.addEventListener("click", () => sendTransition("/decision", { decision: "approve" }));
+    rejectBtn.addEventListener("click", () => sendTransition("/decision", { decision: "reject" }));
+    executeBtn.addEventListener("click", () => sendTransition("/execute"));
+  </script>
+</body>
+</html>

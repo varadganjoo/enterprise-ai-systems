@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claim Auditor · Multi-Class Evidence Adjudication</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --card: #151821;
+      --card-alt: #1c202c;
+      --border: #262c3d;
+      --border-focus: #3b82f6;
+      --ink: #f1f5f9;
+      --ink-muted: #94a3b8;
+      --ink-subtle: #64748b;
+      --accent: #38bdf8;
+      --supported: #10b981;
+      --supported-bg: rgba(16, 185, 129, 0.12);
+      --supported-border: rgba(16, 185, 129, 0.35);
+      --contradicted: #f43f5e;
+      --contradicted-bg: rgba(244, 63, 94, 0.12);
+      --contradicted-border: rgba(244, 63, 94, 0.35);
+      --superseded: #f59e0b;
+      --superseded-bg: rgba(245, 158, 11, 0.12);
+      --superseded-border: rgba(245, 158, 11, 0.35);
+      --unverifiable: #d97706;
+      --unverifiable-bg: rgba(217, 119, 6, 0.12);
+      --unverifiable-border: rgba(217, 119, 6, 0.35);
+      --highlight: #fef08a;
+      --highlight-ink: #1e1b4b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    header, main {
+      width: min(1200px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+    header {
+      padding: 32px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .kicker {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .kicker::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    .badge-pipeline {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+    }
+    h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 650;
+      font-size: clamp(32px, 4.5vw, 48px);
+      line-height: 1.05;
+      margin: 4px 0 10px;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      max-width: 78ch;
+      color: var(--ink-muted);
+      margin: 0;
+      font-size: 15px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-muted);
+      margin-bottom: 8px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0d0f14;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    button.btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: 0;
+      border-radius: 6px;
+      padding: 9px 18px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    button.btn-primary:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .sample-btn {
+      background: var(--card-alt);
+      border: 1px solid var(--border);
+      color: var(--ink-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sample-btn:hover {
+      background: #232838;
+      color: var(--ink);
+      border-color: var(--ink-subtle);
+    }
+    .dashboard-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .metric-card {
+      flex: 1;
+      min-width: 140px;
+      background: #0e1118;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .metric-label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--ink-subtle);
+      margin-bottom: 4px;
+    }
+    .metric-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .metric-val.sup { color: var(--supported); }
+    .metric-val.con { color: var(--contradicted); }
+    .metric-val.supd { color: var(--superseded); }
+    .metric-val.unv { color: var(--unverifiable); }
+
+    .telemetry-row {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      color: var(--ink-muted);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .findings-container {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .finding-card {
+      background: #11141c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .finding-card.verdict-supported { border-left: 4px solid var(--supported); }
+    .finding-card.verdict-contradicted { border-left: 4px solid var(--contradicted); }
+    .finding-card.verdict-superseded { border-left: 4px solid var(--superseded); }
+    .finding-card.verdict-unverifiable { border-left: 4px solid var(--unverifiable); }
+
+    .finding-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: #151822;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .claim-num {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-subtle);
+    }
+    .verdict-badge {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .verdict-badge.supported {
+      background: var(--supported-bg);
+      border: 1px solid var(--supported-border);
+      color: var(--supported);
+    }
+    .verdict-badge.contradicted {
+      background: var(--contradicted-bg);
+      border: 1px solid var(--contradicted-border);
+      color: var(--contradicted);
+    }
+    .verdict-badge.superseded {
+      background: var(--superseded-bg);
+      border: 1px solid var(--superseded-border);
+      color: var(--superseded);
+    }
+    .verdict-badge.unverifiable {
+      background: var(--unverifiable-bg);
+      border: 1px solid var(--unverifiable-border);
+      color: var(--unverifiable);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+    }
+    .conf-badge {
+      background: #1e2433;
+      color: #94a3b8;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #2b3347;
+    }
+    .source-tag {
+      background: #192231;
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .finding-body {
+      padding: 18px;
+    }
+    .reason-text {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 16px;
+      background: #0d0f14;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #202636;
+    }
+    .diff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .diff-column {
+      background: #0b0d13;
+      border: 1px solid #1f2535;
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .diff-col-title {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-subtle);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .diff-content {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    mark.quote-highlight {
+      background: var(--highlight);
+      color: var(--highlight-ink);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    .unverifiable-msg {
+      color: #f59e0b;
+      font-style: italic;
+      font-size: 13px;
+    }
+    .span-info {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 10px;
+      color: var(--ink-subtle);
+    }
+    @media (max-width: 860px) {
+      .diff-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <div class="kicker">Cluster 1 / Fact Verification · Port 8007</div>
+      <div class="badge-pipeline">4-CLASS VERDICT PIPELINE</div>
+    </div>
+    <h1>Claim Auditor</h1>
+    <p class="lede">Adjudicate document drafts against corporate policy ground truth. Each claim is mathematically classified into <code>SUPPORTED</code>, <code>CONTRADICTED</code>, <code>SUPERSEDED</code>, or <code>UNVERIFIABLE</code> with exact character offsets and side-by-side evidence diffs.</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <form id="form">
+        <label for="draft">Draft to Audit</label>
+        <textarea id="draft">The current PTO policy gives employees 15 days. It also gives them 20 days. The office is in Paris.</textarea>
+        <div class="row-actions">
+          <button type="submit" class="btn-primary" id="submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Audit Claims
+          </button>
+          <button type="button" class="sample-btn" data-draft="The current PTO policy gives employees 15 days. It also gives them 20 days. The office is in Paris.">Standard Test (Contradicted + Supported + Unverifiable)</button>
+          <button type="button" class="sample-btn" data-draft="Under the 2024 policy, employees accrued 15 days of paid time off per calendar year.">Historical Superseded Test</button>
+          <button type="button" class="sample-btn" data-draft="Full-time employees receive 20 days of paid time off per calendar year under the current policy.">Fully Supported Test</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="results-panel" style="display: none;">
+      <div class="dashboard-metrics">
+        <div class="metric-card">
+          <div class="metric-label">Total Claims</div>
+          <div class="metric-val" id="metric-total">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Supported</div>
+          <div class="metric-val sup" id="metric-sup">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Contradicted</div>
+          <div class="metric-val con" id="metric-con">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Superseded</div>
+          <div class="metric-val supd" id="metric-supd">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Unverifiable</div>
+          <div class="metric-val unv" id="metric-unv">0</div>
+        </div>
+      </div>
+
+      <div class="telemetry-row" id="telemetry"></div>
+
+      <div class="findings-container" id="findings"></div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector("#form");
+    const draft = document.querySelector("#draft");
+    const submit = document.querySelector("#submit");
+    const resultsPanel = document.querySelector("#results-panel");
+    const telemetry = document.querySelector("#telemetry");
+    const findingsContainer = document.querySelector("#findings");
+
+    const metricTotal = document.querySelector("#metric-total");
+    const metricSup = document.querySelector("#metric-sup");
+    const metricCon = document.querySelector("#metric-con");
+    const metricSupd = document.querySelector("#metric-supd");
+    const metricUnv = document.querySelector("#metric-unv");
+
+    document.querySelectorAll(".sample-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        draft.value = btn.dataset.draft;
+        draft.focus();
+      });
+    });
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function highlightSpan(fullText, startChar, endChar) {
+      if (!fullText) return "";
+      if (startChar >= 0 && endChar > startChar && endChar <= fullText.length) {
+        const before = escapeHtml(fullText.slice(0, startChar));
+        const highlighted = escapeHtml(fullText.slice(startChar, endChar));
+        const after = escapeHtml(fullText.slice(endChar));
+        return before + '<mark class="quote-highlight">' + highlighted + '</mark>' + after;
+      }
+      return escapeHtml(fullText);
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      submit.disabled = true;
+      telemetry.textContent = "Auditing draft through multi-class verdict pipeline…";
+      findingsContainer.replaceChildren();
+      resultsPanel.style.display = "block";
+
+      try {
+        const res = await fetch("/audit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ draft: draft.value })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          telemetry.textContent = data.detail || "Audit execution failed.";
+          return;
+        }
+
+        telemetry.textContent = `${data.model} · Latency: ${data.latency_ms} ms · Tokens: ${data.prompt_tokens} in / ${data.output_tokens} out`;
+
+        const findings = data.findings || [];
+        const sources = data.sources || {};
+
+        let cSup = 0, cCon = 0, cSupd = 0, cUnv = 0;
+
+        findings.forEach(f => {
+          const v = (f.verdict || "").toLowerCase();
+          if (v === "supported") cSup++;
+          else if (v === "contradicted") cCon++;
+          else if (v === "superseded") cSupd++;
+          else cUnv++;
+        });
+
+        metricTotal.textContent = findings.length;
+        metricSup.textContent = cSup;
+        metricCon.textContent = cCon;
+        metricSupd.textContent = cSupd;
+        metricUnv.textContent = cUnv;
+
+        findingsContainer.replaceChildren();
+
+        findings.forEach((finding, idx) => {
+          const vLower = (finding.verdict || "").toLowerCase();
+          const card = document.createElement("div");
+          card.className = `finding-card verdict-${vLower}`;
+
+          // Header
+          const header = document.createElement("div");
+          header.className = "finding-header";
+
+          const headerLeft = document.createElement("div");
+          headerLeft.className = "header-left";
+          headerLeft.innerHTML = `
+            <span class="claim-num">CLAIM ${(idx + 1).toString().padStart(2, '0')}</span>
+            <span class="verdict-badge ${vLower}">${escapeHtml(finding.verdict.toUpperCase())}</span>
+          `;
+
+          const headerRight = document.createElement("div");
+          headerRight.className = "header-right";
+          const confPercent = Math.round((finding.confidence || 0) * 100);
+          headerRight.innerHTML = `
+            <span class="conf-badge">${confPercent}% Confidence</span>
+            ${finding.source ? `<span class="source-tag">${escapeHtml(finding.source)}</span>` : ""}
+          `;
+
+          header.append(headerLeft, headerRight);
+
+          // Body
+          const body = document.createElement("div");
+          body.className = "finding-body";
+
+          const reason = document.createElement("div");
+          reason.className = "reason-text";
+          reason.textContent = finding.reason;
+
+          // Side-by-side Diff
+          const diffGrid = document.createElement("div");
+          diffGrid.className = "diff-grid";
+
+          // Left column: Draft claim
+          const leftCol = document.createElement("div");
+          leftCol.className = "diff-column";
+          leftCol.innerHTML = `
+            <div class="diff-col-title">
+              <span>Submitted Claim</span>
+            </div>
+            <div class="diff-content">${escapeHtml(finding.text)}</div>
+          `;
+
+          // Right column: Source Evidence
+          const rightCol = document.createElement("div");
+          rightCol.className = "diff-column";
+
+          const sourceObj = sources[finding.source];
+          let evidenceHtml = "";
+          let spanInfo = "";
+
+          if (vLower === "unverifiable" || !finding.source || !sourceObj) {
+            evidenceHtml = `<div class="unverifiable-msg">No verbatim quote found in knowledge base sources to support this claim.</div>`;
+          } else {
+            spanInfo = `<span class="span-info">Span: [${finding.start_char}:${finding.end_char}]</span>`;
+            evidenceHtml = `<div class="diff-content">${highlightSpan(sourceObj.text, finding.start_char, finding.end_char)}</div>`;
+          }
+
+          rightCol.innerHTML = `
+            <div class="diff-col-title">
+              <span>Source Evidence ${finding.source ? `(${escapeHtml(finding.source)})` : ""}</span>
+              ${spanInfo}
+            </div>
+            ${evidenceHtml}
+          `;
+
+          diffGrid.append(leftCol, rightCol);
+          body.append(reason, diffGrid);
+
+          card.append(header, body);
+          findingsContainer.append(card);
+        });
+
+      } catch (err) {
+        telemetry.textContent = "Error: Unable to complete audit request.";
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
