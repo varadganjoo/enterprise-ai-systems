@@ -1,6 +1,6 @@
 # Enterprise AI Systems Engineering Suite
 
-A production-grade portfolio of **9 enterprise AI systems** demonstrating deterministic guardrails, state-machine orchestration, AST-enforced security, zero-hallucination retrieval, and human-in-the-loop (HITL) workflows.
+A production-grade portfolio of **9 enterprise AI systems** demonstrating deterministic guardrails, state-machine orchestration, AST-enforced security, verifiable retrieval, and human-in-the-loop (HITL) workflows.
 
 Built specifically to showcase **senior-level AI engineering capabilities** for both high-impact contract roles (immediate ROI, risk mitigation, operational reliability) and full-time positions (systems architecture, evals-as-code, and production rigor).
 
@@ -10,7 +10,7 @@ Built specifically to showcase **senior-level AI engineering capabilities** for 
 
 ```mermaid
 flowchart TD
-    subgraph Cluster1["1. Retrieval & Fact Verification (Zero-Hallucination)"]
+    subgraph Cluster1["1. Retrieval & Fact Verification (Verifiable Grounding)"]
         P1["01 Cited Knowledge Agent<br/>(Hybrid RRF + Character-Offset Span Grounding)"]
         P7["07 Claim Auditor<br/>(Atomic Fact-Checking + Temporal Policy Engine)"]
         P9["09 Multi-Hop Brief<br/>(DAG Query Planner + Dependency Citation Gating)"]
@@ -94,3 +94,10 @@ cd <project-folder>
 ..\.venv\Scripts\python evals/run_eval.py
 ```
 Scorecards report quantitative metrics (Hit Rate, Verbatim Precision, Refusal Accuracy, Cost Savings) produced dynamically during the run.
+
+---
+
+## Engineering Attribution & AI Pair-Programming
+
+This repository was developed with Gemini and Claude as AI pair-programming assistants. I designed the architecture, the deterministic safety rules and invariants, the state machines, and the verification test suites, and reviewed all code.
+
