@@ -2,8 +2,6 @@
 
 An engineering portfolio of **9 enterprise AI systems** demonstrating deterministic guardrails, state-machine orchestration, AST-enforced security, verifiable retrieval, and human-in-the-loop (HITL) workflows.
 
-Built specifically to showcase **senior-level AI engineering capabilities** for both high-impact contract roles (immediate ROI, risk mitigation, operational reliability) and full-time positions (systems architecture, evals-as-code, and production rigor).
-
 ---
 
 ## Portfolio Architecture
