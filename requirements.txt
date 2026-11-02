@@ -1,0 +1,10 @@
+-r 01-cited-knowledge-agent/requirements.txt
+-r 02-document-extraction/requirements.txt
+-r 03-operator-agent/requirements.txt
+-r 04-analytics-copilot/requirements.txt
+-r 05-model-router/requirements.txt
+-r 06-memory-service/requirements.txt
+-r 07-claim-auditor/requirements.txt
+-r 08-case-workflow/requirements.txt
+-r 09-multi-hop-brief/requirements.txt
+httpx==0.28.1
