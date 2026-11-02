@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.hops import bind_hop, compose, evaluate_dag, load_passages, rank_passages
@@ -18,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PASSAGES = ROOT / "data" / "passages"
 logger = logging.getLogger("brief")
 app = FastAPI(title="Multi-hop brief")
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 PLAN_SYSTEM = (
     "Break the question into a directed acyclic graph (DAG) of at most three answerable subquestions. "

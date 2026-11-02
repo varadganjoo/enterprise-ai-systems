@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.extract import extract_document, invoice_path, list_documents
@@ -31,6 +32,7 @@ DB_PATH = ROOT / "data" / "extraction.db"
 logger = logging.getLogger("extraction")
 
 app = FastAPI(title="Document extraction")
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 
 class ExtractRequest(BaseModel):

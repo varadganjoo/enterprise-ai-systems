@@ -377,20 +377,23 @@
       }
     }
   </style>
+<link rel="stylesheet" href="/suite/workspace.css">
+<script src="/suite/workspace.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
   <header>
     <div class="header-container">
       <div class="top-badge-row">
         <span class="kicker">06 / Memory Service</span>
         <span class="port-badge">port 8006 · Entity Slot Memory &amp; PII Redaction Engine</span>
       </div>
-      <h1>Enterprise Slot Memory &amp; PII Redaction</h1>
+      <h1>Memory Service</h1>
       <p class="lede">Continuous session memory with deterministic slot supersession tracking. Client PII (emails, phones, SSNs, credit cards) is securely masked with placeholder tokens before external LLM dispatch and re-hydrated in real time.</p>
     </div>
   </header>
 
-  <main class="main-container">
+  <main id="workspace" class="main-container">
     <!-- Left Column: Chat & PII Redaction Live Comparison -->
     <section>
       <!-- Live PII Redaction Comparison Card -->
@@ -522,6 +525,7 @@
       try {
         const res = await fetch("/memories/" + sessionId);
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         renderActiveSlots(data.active || []);
         renderTimeline(data.active || [], data.history || []);
       } catch (err) {
@@ -641,6 +645,7 @@
           body: JSON.stringify({ session_id: sessionId, message }),
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
 
         // Update PII comparison
         highlightPII(data.original_message || message, data.redacted_prompt || message, data.redactions || []);
@@ -665,7 +670,7 @@
       } catch (err) {
         const errBubble = document.createElement("div");
         errBubble.className = "chat-bubble assistant";
-        errBubble.innerHTML = `<div style="color: #fca5a5;">Chat failed: ${err.message}</div>`;
+        errBubble.textContent = `Chat failed: ${err.message}`;
         chatLog.append(errBubble);
       } finally {
         sendBtn.disabled = false;

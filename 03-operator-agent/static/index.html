@@ -275,12 +275,15 @@
     }
     .guardrail-pass { background: var(--success-bg); color: var(--success-text); }
   </style>
+<link rel="stylesheet" href="/suite/workspace.css">
+<script src="/suite/workspace.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
   <header>
     <div class="brand-wrap">
       <span class="badge-lead">03 / OPERATOR-AGENT</span>
-      <h1>Support Operator Agent & Supervisor Review Console</h1>
+      <h1>Support Operator</h1>
     </div>
     <div class="header-meta">
       <div class="meta-chip"><span class="pulse-dot"></span> Agent Runtime Active</div>
@@ -290,7 +293,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="workspace">
     <!-- COLUMN 1: TICKET QUEUE -->
     <section class="panel">
       <div class="panel-header">
@@ -406,6 +409,7 @@
       try {
         const res = await fetch("/tickets");
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         renderTickets(data.tickets || []);
         renderApprovals(data.approvals || []);
       } catch (err) {
@@ -519,6 +523,7 @@
           body: JSON.stringify({ goal })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (!res.ok) {
           alert("Run failed: " + (data.detail || "Error"));
           return;
@@ -551,6 +556,7 @@
           headers: { "Content-Type": "application/json" }
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (res.ok) {
           loadTicketsAndApprovals();
         } else {
@@ -575,6 +581,7 @@
           body: JSON.stringify({ body: newBody })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (res.ok) {
           alert("Draft updated successfully!");
           loadTicketsAndApprovals();
@@ -594,6 +601,7 @@
           body: JSON.stringify({ decision: "reject" })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (res.ok) {
           loadTicketsAndApprovals();
         } else {

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from app.agent import SYSTEM, Action, render_transcript, run_agent
@@ -18,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "data" / "operator.db"
 logger = logging.getLogger("operator")
 app = FastAPI(title="Operator agent")
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 
 class GoalRequest(BaseModel):

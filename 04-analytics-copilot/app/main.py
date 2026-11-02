@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from app.copilot import SYSTEM, SqlDraft, run_question
@@ -25,6 +26,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Analytics copilot", lifespan=lifespan)
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 
 class QuestionRequest(BaseModel):

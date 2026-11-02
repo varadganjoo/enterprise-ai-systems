@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from app.audit import Claim, adjudicate, load_sources
@@ -17,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCES = ROOT / "data" / "sources"
 logger = logging.getLogger("auditor")
 app = FastAPI(title="Claim auditor")
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 SYSTEM = (
     "Split the draft into atomic claims. For each claim, copy a verbatim quote from one source "

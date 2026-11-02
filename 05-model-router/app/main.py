@@ -9,6 +9,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from app.llm import CHEAP_MODEL, STRONG_MODEL, generate_model, get_client, redact
@@ -17,6 +18,7 @@ from app.router import RouteResult, illustrative_cost, normalize_confidence, sho
 ROOT = Path(__file__).resolve().parents[1]
 logger = logging.getLogger("router")
 app = FastAPI(title="Model router")
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 GRADE_SYSTEM = (
     "Classify the task. easy means one lookup, a rewrite, a classification, or extracting one field. "

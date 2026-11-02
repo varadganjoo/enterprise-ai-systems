@@ -382,8 +382,11 @@
       .layout { grid-template-columns: 1fr; }
     }
   </style>
+<link rel="stylesheet" href="/suite/workspace.css">
+<script src="/suite/workspace.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
   <header>
     <div class="header-top">
       <div class="kicker">Cluster 1 / Retrieval & Grounding · Port 8001</div>
@@ -392,7 +395,7 @@
     <h1>Cited Knowledge Agent</h1>
     <p class="lede">Answers strictly from the corporate handbook. Citations are mathematically checked before generation leaves process: verbatim substring required, character-level offsets verified, and superseded policies blocked.</p>
   </header>
-  <main class="layout">
+  <main id="workspace" class="layout">
     <section>
       <div class="panel">
         <form id="ask-form">
@@ -556,6 +559,7 @@
           body: JSON.stringify({ question: question.value })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (!res.ok) {
           errorEl.textContent = data.detail || "Verification request failed.";
           errorEl.style.display = "block";
@@ -566,7 +570,7 @@
         currentHits = data.retrieval || [];
 
         // Telemetry
-        telModel.textContent = data.model || "gemini-2.5-flash";
+        telModel.textContent = data.model || "Not reported";
         telLatency.textContent = data.latency_ms + " ms";
         telTokens.textContent = `${data.prompt_tokens} in / ${data.output_tokens} out`;
         telDropped.textContent = data.dropped_citations;
@@ -635,7 +639,7 @@
         renderHits();
 
       } catch (err) {
-        errorEl.textContent = "Network error: Unable to communicate with the knowledge agent.";
+        errorEl.textContent = `Error: ${err.message}`;
         errorEl.style.display = "block";
       } finally {
         submit.disabled = false;

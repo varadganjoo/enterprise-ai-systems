@@ -368,20 +368,23 @@
       }
     }
   </style>
+<link rel="stylesheet" href="/suite/workspace.css">
+<script src="/suite/workspace.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
   <header>
     <div class="header-container">
       <div class="top-badge-row">
         <span class="kicker">05 / Model Router</span>
-        <span class="port-badge">port 8005 · Tiered Semantic Router &amp; Circuit Breaker</span>
+        <span class="port-badge">port 8005 · Tiered Model Router &amp; Failure Fallback</span>
       </div>
-      <h1>Enterprise Tiered Model Router</h1>
-      <p class="lede">Cost-optimized AI dispatch engine. Combines sub-millisecond heuristic triage, semantic complexity scoring, dynamic model dispatch, and resilient circuit-breaker fallbacks.</p>
+      <h1>Model Router</h1>
+      <p class="lede">Compare model paths, inspect heuristic difficulty scores, and review measured token usage with illustrative cost estimates.</p>
     </div>
   </header>
 
-  <main class="main-container">
+  <main id="workspace" class="main-container">
     <!-- Query Tester -->
     <section class="card">
       <div class="card-title">
@@ -400,7 +403,7 @@
             <button type="button" class="sample-chip" data-q="What is the capital of Australia?">Factual (Heuristic Easy)</button>
             <button type="button" class="sample-chip" data-q="A shirt costs $40. It is discounted 25% then taxed 8% on the discounted price. What is the final price in dollars to the nearest cent?">Math (Complexity Classifier)</button>
             <button type="button" class="sample-chip" data-q="Write a python function to implement an LRU cache with O(1) get and put operations.">Code (Heuristic Complex)</button>
-            <button type="button" class="sample-chip" data-q="If all bloops are razzies and some razzies are fuzzies, are all bloops necessarily fuzzies? Explain step-by-step.">Logic (Semantic Complex)</button>
+            <button type="button" class="sample-chip" data-q="If all bloops are razzies and some razzies are fuzzies, are all bloops necessarily fuzzies? Explain step-by-step.">Logic (Heuristic Complex)</button>
           </div>
         </div>
       </form>
@@ -426,7 +429,7 @@
           <!-- Step 2 -->
           <div class="tree-node" id="node-t2">
             <div class="node-step">Tier 2</div>
-            <div class="node-title">Semantic Classifier</div>
+            <div class="node-title">Heuristic Classifier</div>
             <div class="node-desc">Logic, math, code &amp; constraint scoring</div>
             <div class="node-status-badge" id="badge-t2">Idle</div>
           </div>
@@ -440,7 +443,7 @@
           <!-- Step 4 -->
           <div class="tree-node" id="node-t4">
             <div class="node-step">Tier 4</div>
-            <div class="node-title">Circuit Breaker</div>
+            <div class="node-title">Failure Fallback</div>
             <div class="node-desc">Automated fallback &amp; retry resilience</div>
             <div class="node-status-badge" id="badge-t4">Healthy</div>
           </div>
@@ -466,7 +469,7 @@
         <div class="scorecard-card">
           <div class="scorecard-label">Token Distribution</div>
           <div class="scorecard-value" id="sc-tokens">0+0</div>
-          <div class="scorecard-sub" id="sc-tokens-saved">0 tokens saved</div>
+          <div class="scorecard-sub" id="sc-tokens-saved">0 measured token savings (baseline not run)</div>
         </div>
         <div class="scorecard-card">
           <div class="scorecard-label">Routed Cost vs Baseline</div>
@@ -556,13 +559,14 @@
           body: JSON.stringify({ task }),
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
 
         // 1. Update Economics
         scSavingsPct.textContent = (data.savings_percentage != null ? data.savings_percentage : 0) + "%";
         scSavingsUsd.textContent = "Saved $" + (data.estimated_dollar_savings != null ? data.estimated_dollar_savings.toFixed(6) : "0.000000");
         scLatency.textContent = (data.latency_ms || 0) + " ms";
         scTokens.textContent = (data.prompt_tokens || 0) + " in · " + (data.output_tokens || 0) + " out";
-        scTokensSaved.textContent = (data.tokens_saved || 0) + " tokens saved";
+        scTokensSaved.textContent = (data.tokens_saved || 0) + " measured token savings (baseline not run)";
         scCost.textContent = "$" + (data.illustrative_cost_usd != null ? data.illustrative_cost_usd.toFixed(6) : "0.000000");
         scBaseline.textContent = "Baseline: $" + (data.baseline_cost_usd != null ? data.baseline_cost_usd.toFixed(6) : "0.000000");
 
@@ -589,7 +593,7 @@
         badgeT3.className = "node-status-badge success";
         badgeT3.textContent = data.model;
 
-        // Tier 4 Circuit Breaker
+        // Tier 4 Failure Fallback
         if (data.circuit_breaker_triggered) {
           nodeT4.className = "tree-node active-circuit";
           badgeT4.className = "node-status-badge warning";

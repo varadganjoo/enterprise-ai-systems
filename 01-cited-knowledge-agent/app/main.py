@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from app.corpus import load_chunks
@@ -89,6 +90,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Cited knowledge agent", lifespan=lifespan)
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 
 @app.get("/")

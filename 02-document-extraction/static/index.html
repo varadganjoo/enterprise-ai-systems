@@ -347,12 +347,15 @@
       font-size: 13px;
     }
   </style>
+<link rel="stylesheet" href="/suite/workspace.css">
+<script src="/suite/workspace.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
   <header>
     <div class="brand-wrap">
       <span class="badge-lead">02 / DOC-EXTRACT</span>
-      <h1>Autonomous Invoice Extraction & HITL Triage</h1>
+      <h1>Document Extraction</h1>
     </div>
     <div class="header-meta">
       <div class="meta-chip"><span class="pulse-dot"></span> Reconciler Online</div>
@@ -361,7 +364,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="workspace">
     <div class="top-controls">
       <div class="control-group">
         <label for="docSelect">Select Invoice File:</label>
@@ -551,6 +554,7 @@
       try {
         const res = await fetch("/documents");
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         docSelect.replaceChildren();
         for (const name of data.documents) {
           const opt = document.createElement("option");
@@ -572,6 +576,7 @@
       try {
         const res = await fetch("/reviews");
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         queueBody.replaceChildren();
         if (!data.reviews || data.reviews.length === 0) {
           queueBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No reviews in queue.</td></tr>`;
@@ -744,6 +749,7 @@
           body: JSON.stringify({ document_id: docName })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (!res.ok) {
           docRaw.textContent = "Extraction Error: " + (data.detail || "Request failed");
           return;
@@ -790,6 +796,7 @@
           body: JSON.stringify({ review_id: currentReviewId, note: "Approved by AP Operator" })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (res.ok) {
           inspectReview(data);
           loadQueue();
@@ -824,6 +831,7 @@
           body: JSON.stringify({ decision: "reject", note })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (res.ok) {
           inspectReview(data);
           loadQueue();
@@ -859,6 +867,7 @@
           })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (res.ok) {
           inspectReview(data);
           loadQueue();
