@@ -15,3 +15,7 @@ Open http://127.0.0.1:8008. Describe a duplicate charge, then approve, then exec
 ```powershell
 ..\.venv\Scripts\python -m pytest
 ```
+
+## Suite setup
+
+See the [root setup guide](../README.md) for installation and shared model settings. From the repository root, run `python run.py 8` using the virtual environment. Dashboards share the root `suite/` assets.

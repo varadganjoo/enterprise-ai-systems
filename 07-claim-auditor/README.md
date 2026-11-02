@@ -13,3 +13,7 @@ Open http://127.0.0.1:8007 and paste a draft that says the current policy is 15 
 ```powershell
 ..\.venv\Scripts\python -m pytest
 ```
+
+## Suite setup
+
+See the [root setup guide](../README.md) for installation and shared model settings. From the repository root, run `python run.py 7` using the virtual environment. Dashboards share the root `suite/` assets.
