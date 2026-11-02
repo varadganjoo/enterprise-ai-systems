@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 import logging
 import time
 from pathlib import Path
@@ -17,7 +18,13 @@ from app.seed import seed
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "data" / "business.db"
 logger = logging.getLogger("analytics")
-app = FastAPI(title="Analytics copilot")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    seed(DB_PATH)
+    yield
+
+
+app = FastAPI(title="Analytics copilot", lifespan=lifespan)
 
 
 class QuestionRequest(BaseModel):
@@ -41,11 +48,6 @@ def _complete(client, question: str):
         schema=SqlDraft,
     )
     return draft, usage.prompt_tokens, usage.output_tokens
-
-
-@app.on_event("startup")
-def _startup() -> None:
-    seed(DB_PATH)
 
 
 @app.get("/")

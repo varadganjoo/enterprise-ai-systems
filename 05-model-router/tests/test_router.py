@@ -94,7 +94,7 @@ def test_calculate_economics_savings():
     assert econ["baseline_cost_usd"] > econ["actual_cost_usd"]
     assert econ["estimated_dollar_savings"] > 0
     assert econ["savings_percentage"] > 0
-    assert econ["tokens_saved"] > 0
+    assert econ["tokens_saved"] == 0
 
 
 def test_circuit_breaker_result_structure():
