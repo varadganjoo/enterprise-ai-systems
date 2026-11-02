@@ -4,19 +4,22 @@ from __future__ import annotations
 
 import logging
 import time
+from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field, field_validator
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field, field_validator, model_validator
 
-from app.hops import bind_hop, compose, load_passages, rank_passages
+from app.hops import bind_hop, compose, evaluate_dag, load_passages, rank_passages
 from app.llm import STRONG_MODEL, generate_model, get_client, redact
 
 ROOT = Path(__file__).resolve().parents[1]
 PASSAGES = ROOT / "data" / "passages"
 logger = logging.getLogger("brief")
 app = FastAPI(title="Multi-hop brief")
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 PLAN_SYSTEM = (
     "Break the question into a directed acyclic graph (DAG) of at most three answerable subquestions. "
@@ -55,7 +58,27 @@ class PlannedHop(BaseModel):
 
 
 class Plan(BaseModel):
-    hops: list[PlannedHop] = Field(default_factory=list)
+    hops: list[PlannedHop] = Field(min_length=1, max_length=3)
+
+    @model_validator(mode="after")
+    def order_dependencies(self):
+        for index, hop in enumerate(self.hops):
+            hop.id = hop.id.strip() or f"hop_{index+1}"
+            if not hop.question.strip():
+                raise ValueError("Every hop needs a nonempty question.")
+        by_id = {hop.id: hop for hop in self.hops}
+        if len(by_id) != len(self.hops):
+            raise ValueError("Hop ids must be unique.")
+        if any(dep not in by_id for hop in self.hops for dep in hop.depends_on):
+            raise ValueError("Every dependency must name a planned hop.")
+        if not any(hop.required for hop in self.hops):
+            raise ValueError("At least one hop must be required.")
+        try:
+            order = TopologicalSorter({hop.id: hop.depends_on for hop in self.hops}).static_order()
+            self.hops = [by_id[hid] for hid in order]
+        except CycleError as exc:
+            raise ValueError("Hop dependencies must not contain a cycle.") from exc
+        return self
 
 
 class HopAnswer(BaseModel):
@@ -109,7 +132,7 @@ def brief(body: QuestionRequest) -> dict:
             prereqs = [dep.strip() for dep in planned.depends_on if dep.strip()]
 
             # Check if any prerequisite in depends_on failed or is gated
-            prereq_failed = any(hop_status_map.get(dep) != "Verified" for dep in prereqs if dep in hop_status_map)
+            prereq_failed = any(hop_status_map.get(dep) != "Verified" for dep in prereqs)
 
             if prereq_failed:
                 gated_hop = bind_hop(
@@ -129,11 +152,12 @@ def brief(body: QuestionRequest) -> dict:
                 continue
 
             ranked = rank_passages(planned.question, passages)
+            prerequisites = "\n".join(f"{hop.hop_id}: {hop.answer}" for hop in hops if hop.hop_id in prereqs)
             answered, hop_usage = generate_model(
                 client,
                 model=STRONG_MODEL,
                 system=HOP_SYSTEM,
-                prompt=f"Subquestion: {planned.question}\n\nPassages:\n{_render_passages(ranked)}",
+                prompt=f"Subquestion: {planned.question}\n\nVerified prerequisites:\n{prerequisites}\n\nPassages:\n{_render_passages(ranked)}",
                 schema=HopAnswer,
             )
             prompt_tokens += hop_usage.prompt_tokens
@@ -144,16 +168,16 @@ def brief(body: QuestionRequest) -> dict:
                 answer=answered.answer,
                 quote=answered.quote,
                 chunk_id=answered.chunk_id,
-                passages=passages,
+                passages=ranked,
                 hop_id=hop_id,
                 depends_on=prereqs,
             )
             hops.append(bound)
             hop_status_map[hop_id] = bound.status
 
-        gated = compose(hops, "")
+        hops, graph = evaluate_dag(hops)
         answer = ""
-        if not gated.refused:
+        if hops and any(hop.required for hop in hops) and all(hop.supported for hop in hops if hop.required):
             supported = "\n".join(
                 f"- [{hop.hop_id}] {hop.question}: {hop.answer} (quote: {hop.quote})"
                 for hop in hops if hop.supported
@@ -169,7 +193,7 @@ def brief(body: QuestionRequest) -> dict:
             output_tokens += synth_usage.output_tokens
             answer = synthesis.answer
 
-        final = compose(hops, answer)
+        final = compose(hops, answer, graph)
     except Exception as exc:
         logger.exception("brief failed")
         raise HTTPException(status_code=502, detail=redact(str(exc))) from exc

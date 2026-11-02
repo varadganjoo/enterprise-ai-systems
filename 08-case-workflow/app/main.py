@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from app.llm import STRONG_MODEL, generate_model, get_client, redact
@@ -18,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "data" / "cases.db"
 logger = logging.getLogger("workflow")
 app = FastAPI(title="Case workflow")
+app.mount("/suite", StaticFiles(directory=ROOT.parent / "suite"), name="suite")
 
 SYSTEM = (
     "Classify the narrative as one of: duplicate_charge, goodwill, shipping. "

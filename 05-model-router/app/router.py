@@ -14,8 +14,6 @@ VERIFY_BAR = 0.75
 
 # Rates per 1,000,000 tokens (input_usd, output_usd)
 ILLUSTRATIVE_RATES = {
-    CHEAP_MODEL: (0.10, 0.40),
-    STRONG_MODEL: (0.30, 2.50),
     "gemini-2.5-flash": (0.075, 0.30),
     "gemini-2.5-pro": (1.25, 5.00),
     "gemini-3.5-flash-lite": (0.10, 0.40),
@@ -169,7 +167,8 @@ def calculate_economics(
     savings_pct = (
         round((dollar_savings / baseline_cost) * 100, 1) if baseline_cost > 0 else 0.0
     )
-    tokens_saved = int(prompt_tokens * 0.2) if actual_model == CHEAP_MODEL else 0
+    # Token savings require a separate baseline run; do not manufacture a measurement.
+    tokens_saved = 0
 
     return {
         "baseline_cost_usd": round(baseline_cost, 6),

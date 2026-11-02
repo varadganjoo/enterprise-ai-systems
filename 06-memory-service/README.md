@@ -20,3 +20,7 @@ Open http://127.0.0.1:8006. Say you prefer aisle seats, then that you actually p
 ```
 
 The unit tests cover correction, forget, the sensitive block, duplicate adds, and the refusal to guess which memory to replace. The eval script is a live conversation and checks the table, not only the prose.
+
+## Suite setup
+
+See the [root setup guide](../README.md) for installation and shared model settings. From the repository root, run `python run.py 6` using the virtual environment. Dashboards share the root `suite/` assets.

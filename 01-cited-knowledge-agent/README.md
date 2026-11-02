@@ -33,3 +33,7 @@ The scorecard reports retrieval hit rate, grounded answer rate, verbatim citatio
 ## What a client is looking at
 
 The failure mode is a fluent answer that cites the superseded policy, or a quote that never appeared in the file. The check that matters is in `app/grounding.py`: citations that are not substrings of the retrieved chunk are discarded before the response is returned.
+
+## Suite setup
+
+See the [root setup guide](../README.md) for installation and shared model settings. From the repository root, run `python run.py 1` using the virtual environment. Dashboards share the root `suite/` assets.

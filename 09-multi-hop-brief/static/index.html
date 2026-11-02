@@ -379,8 +379,11 @@
       font-size: 11px;
     }
   </style>
+<link rel="stylesheet" href="/suite/workspace.css">
+<script src="/suite/workspace.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
   <header>
     <div class="header-top">
       <div class="kicker">Cluster 1 / Multi-Hop Reasoning · Port 8009</div>
@@ -390,7 +393,7 @@
     <p class="lede">Synthesize answers that span multiple corporate documents via an explicit Directed Acyclic Graph (DAG) of facts. Invariant: If any prerequisite hop lacks a verified verbatim citation, intermediate conclusions are strictly gated and withheld to prevent hallucination.</p>
   </header>
 
-  <main>
+  <main id="workspace">
     <section class="panel">
       <form id="form">
         <label for="question">Inquiry Requiring Multi-Hop Synthesis</label>
@@ -477,6 +480,7 @@
           body: JSON.stringify({ question: question.value })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
         if (!res.ok) {
           telemetry.textContent = data.detail || "Multi-hop evaluation failed.";
           return;
@@ -573,7 +577,7 @@
         });
 
       } catch (err) {
-        telemetry.textContent = "Error: Unable to connect to multi-hop brief engine.";
+        telemetry.textContent = `Error: ${err.message}`;
       } finally {
         submit.disabled = false;
       }

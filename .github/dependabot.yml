@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directories:
+      - '/'
+      - '/01-cited-knowledge-agent'
+      - '/02-document-extraction'
+      - '/03-operator-agent'
+      - '/04-analytics-copilot'
+      - '/05-model-router'
+      - '/06-memory-service'
+      - '/07-claim-auditor'
+      - '/08-case-workflow'
+      - '/09-multi-hop-brief'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly

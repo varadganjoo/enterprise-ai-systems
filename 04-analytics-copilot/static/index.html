@@ -360,20 +360,23 @@
       }
     }
   </style>
+<link rel="stylesheet" href="/suite/workspace.css">
+<script src="/suite/workspace.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
   <header>
     <div class="header-container">
       <div class="top-badge-row">
         <span class="kicker">04 / Analytics Copilot</span>
         <span class="port-badge">port 8004 · sqlglot AST Guard</span>
       </div>
-      <h1>Enterprise SQL Analytics Copilot</h1>
+      <h1>Analytics Copilot</h1>
       <p class="lede">Natural language to verified SQL execution. Strict AST guard enforces single SELECT statements, table allowlists, and maximum LIMIT 100 on read-only SQLite.</p>
     </div>
   </header>
 
-  <main class="main-container">
+  <main id="workspace" class="main-container">
     <!-- Input Card -->
     <section class="card">
       <div class="card-title">
@@ -530,6 +533,7 @@
           body: JSON.stringify({ question: q }),
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Request failed. Check your input and configuration.");
 
         // Metrics
         mAst.textContent = (data.ast_validation_ms != null ? data.ast_validation_ms : 0) + " ms";

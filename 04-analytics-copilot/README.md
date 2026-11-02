@@ -6,7 +6,7 @@ English questions become one SQLite SELECT. The SELECT is checked, then run on a
 
 Completed-order revenue for March 2026 is 400. Three tickets are open. Cho East has the highest completed revenue, 500, because Ben's February order is cancelled.
 
-The model is `gemini-3.8-flash`. No other API key is required.
+The default model is `gemini-3.8-flash`, configurable through `GEMINI_MODEL`. No other API key is required.
 
 ## Run
 
@@ -22,3 +22,7 @@ Open http://127.0.0.1:8004. Ask for March revenue, then try "Delete all tickets.
 ```
 
 The golden file holds reference SQL. The score is whether the model's executed cells match that reference, not whether the SQL string matches. The delete question passes when nothing is executed and the ticket count is unchanged.
+
+## Suite setup
+
+See the [root setup guide](../README.md) for installation and shared model settings. From the repository root, run `python run.py 4` using the virtual environment. Dashboards share the root `suite/` assets.

@@ -1,101 +1,93 @@
-# Enterprise AI Systems Engineering Suite
+# Enterprise AI Systems
 
-An engineering portfolio of **9 enterprise AI systems** demonstrating deterministic guardrails, state-machine orchestration, AST-enforced security, verifiable retrieval, and human-in-the-loop (HITL) workflows.
+[![CI](https://github.com/varadganjoo/enterprise-ai-systems/actions/workflows/ci.yml/badge.svg)](https://github.com/varadganjoo/enterprise-ai-systems/actions/workflows/ci.yml)
 
----
+Nine focused Python applications exploring reliable AI workflows: source-backed answers, structured extraction, approval gates, read-only analytics, model routing, persistent memory, and event-driven case handling.
 
-## Portfolio Architecture
-
-```mermaid
-flowchart TD
-    subgraph Cluster1["1. Retrieval & Fact Verification (Verifiable Grounding)"]
-        P1["01 Cited Knowledge Agent<br/>(Hybrid RRF + Character-Offset Span Grounding)"]
-        P7["07 Claim Auditor<br/>(Atomic Fact-Checking + Temporal Policy Engine)"]
-        P9["09 Multi-Hop Brief<br/>(DAG Query Planner + Dependency Citation Gating)"]
-    end
-
-    subgraph Cluster2["2. Autonomous Operations & HITL (Risk Mitigation)"]
-        P2["02 Document Extraction<br/>(Invoice Parsing + Arithmetic Reconciler + Triage)"]
-        P3["03 Operator Agent<br/>(Stateful Support Operator + Mandatory Approval Gate)"]
-        P8["08 Case Workflow<br/>(Event-Sourced Refund State Machine + Policy Caps)"]
-    end
-
-    subgraph Cluster3["3. Enterprise AI Infrastructure & Governance (Cost & Security)"]
-        P4["04 Analytics Copilot<br/>(sqlglot AST-Enforced Read-Only SQL Engine)"]
-        P5["05 Model Router<br/>(Semantic Tiered Router + Circuit-Breaker Fallback)"]
-        P6["06 Memory Service<br/>(Entity Slot State + PII Tokenizer & Redaction)"]
-    end
-```
-
----
-
-## The 9 Systems: Engineering Guarantees & Invariants
-
-Every system is an independent, runnable FastAPI application with its own modern dashboard, unit tests targeting critical failure modes, and automated evaluation scorecards.
-
-| # | System | Port | Business Invariant & Technical Proof |
-| :--- | :--- | :--- | :--- |
-| **01** | **[Cited Knowledge Agent](01-cited-knowledge-agent/README.md)** | `8001` | **Verifiable Span Grounding**: Hybrid BM25 + Gemini vector search with Reciprocal Rank Fusion (RRF). Answers cite verbatim character spans; hallucinated quotes are discarded in code; superseded policies are rejected unless historical context is explicitly requested. |
-| **02** | **[Document Extraction](02-document-extraction/README.md)** | `8002` | **Accounting Reconciliation**: Ingests invoices and validates line-item math (`sum(items) + tax - discount == total`). If confidence < 0.85 or math mismatches by > $0.01, automatically routes to human triage. |
-| **03** | **[Operator Agent](03-operator-agent/README.md)** | `8003` | **Two-Man Rule Execution**: Stateful agent with step & token caps. External messages/actions are placed in a pending approval queue; no message is ever sent without explicit human sign-off. |
-| **04** | **[Analytics Copilot](04-analytics-copilot/README.md)** | `8004` | **AST-Level SQL Safety**: Uses `sqlglot` AST validation to enforce read-only semantics (`SELECT` only, zero DDL/DML, table allowlist). Injects strict `LIMIT` clauses and connects via SQLite `mode=ro`. |
-| **05** | **[Model Router](05-model-router/README.md)** | `8005` | **Cost & Latency Optimization**: Tiered semantic router directing simple tasks to lightweight models (`gemini-2.5-flash`) and complex reasoning to frontier models (`gemini-2.5-pro`), complete with circuit-breaker fallbacks. |
-| **06** | **[Memory Service](06-memory-service/README.md)** | `8006` | **PII Shield & Entity Slot Memory**: Tracks active entity slots with temporal supersession. Automatically tokenizes and redacts PII (credit cards, SSNs, emails) before prompts leave the network perimeter. |
-| **07** | **[Claim Auditor](07-claim-auditor/README.md)** | `8007` | **Automated Fact-Checking**: Deconstructs content into atomic propositions and computes evidence-based verdicts (`SUPPORTED`, `CONTRADICTED`, `SUPERSEDED`, `UNVERIFIABLE`) using exact document spans. |
-| **08** | **[Case Workflow](08-case-workflow/README.md)** | `8008` | **Event-Sourced State Machine**: Disputes move strictly through legal transitions (`INTAKE` -> `CLASSIFIED` -> `PROPOSED` -> `APPROVED` -> `EXECUTED`). Enforces hard financial caps per category and idempotent event processing. |
-| **09** | **[Multi-Hop Brief](09-multi-hop-brief/README.md)** | `8009` | **Dependency-Gated Synthesis**: Models multi-document reasoning as a DAG. If any intermediate fact lacks a verified citation, the final answer strictly withholds that conclusion rather than guessing. |
-
----
+**The model proposes. Application code checks.** Each workspace exposes evidence, decisions, or state transitions so results can be inspected.
 
 ## Quickstart
 
-### Prerequisites
-- Python 3.11+
-- Virtual environment at `.venv`
-- Google Gemini API key:
-  ```env
-  GEMINI_API_KEY=your_key_here
-  ```
-
-### Running Any Application
-To run any of the applications locally, navigate to its directory and run `uvicorn`:
+Python 3.11 or newer. From the repository root:
 
 ```powershell
-# Example: Run 01 Cited Knowledge Agent on Port 8001
+python -m venv .venv
+.venv\Scripts\python -m pip install --upgrade pip setuptools
+.venv\Scripts\python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+# Edit .env and set GEMINI_API_KEY.
+.venv\Scripts\python run.py
+```
+
+On macOS/Linux use `.venv/bin/python` and `cp .env.example .env`.
+
+Open **http://127.0.0.1:8000** for the suite directory. In another terminal, start a workspace:
+
+```powershell
+.venv\Scripts\python run.py 1
+```
+
+Numbers 1–9 select ports 8001–8009. The directory does not automatically start applications. Each app has interactive API documentation at `/docs`. Keep the complete checkout: dashboards share assets in `suite/`.
+
+## Workspaces
+
+| # | Application | What the code checks |
+|---|---|---|
+| 01 | [Cited Knowledge Agent](01-cited-knowledge-agent) | BM25 + embedding retrieval, rank fusion, quotation offsets, source currency |
+| 02 | [Document Extraction](02-document-extraction) | Text invoice extraction, arithmetic, purchase orders, confidence review thresholds |
+| 03 | [Support Operator](03-operator-agent) | Allowed tools, bounded iterations, outbound rules, separate approval |
+| 04 | [Analytics Copilot](04-analytics-copilot) | Named metrics, parsed SQL, allowed tables, row limits, read-only SQLite |
+| 05 | [Model Router](05-model-router) | Heuristic classification, cheap-answer verification, escalation and fallback |
+| 06 | [Memory Service](06-memory-service) | Session slots, corrections, supersession and pattern-based PII masking |
+| 07 | [Claim Auditor](07-claim-auditor) | Quotation existence and source status, with explicit verdict rules |
+| 08 | [Case Workflow](08-case-workflow) | State transitions, category caps, event replay and duplicate-event handling |
+| 09 | [Multi-Hop Brief](09-multi-hop-brief) | Intermediate citations and dependency gating before synthesis |
+
+## Model settings
+
+A root `.env` configures all nine applications. An application's own `.env` takes precedence; exported environment variables override both.
+
+| Variable | Default |
+|---|---|
+| `GEMINI_API_KEY` | Required for model calls |
+| `GEMINI_MODEL` | `gemini-3.8-flash` |
+| `GEMINI_CHEAP_MODEL` | `gemini-3.5-flash-lite` |
+| `GEMINI_EMBED_MODEL` | `gemini-embedding-001` |
+
+Defaults were checked against Google's [model catalog](https://ai.google.dev/gemini-api/docs/models) during this refresh. Availability and quota depend on your account. Requests have a 60-second timeout. Dashboards open without a key; model operations require one. The knowledge agent reports index readiness at `/health`.
+
+## Tests and evaluations
+
+```powershell
+# All suites, isolated to prevent their app packages from colliding.
+.venv\Scripts\python run.py --test
+
+# One suite.
+cd 09-multi-hop-brief
+..\.venv\Scripts\python -m pytest tests -q
+```
+
+Tests use controlled inputs without paid model calls. CI runs on Windows and Linux, Python 3.11 and 3.13. Existing live evaluation scripts in applications **01–06** consume API quota:
+
+```powershell
 cd 01-cited-knowledge-agent
-..\.venv\Scripts\python -m uvicorn app.main:app --port 8001 --reload
-
-# Example: Run 04 Analytics Copilot on Port 8004
-cd 04-analytics-copilot
-..\.venv\Scripts\python -m uvicorn app.main:app --port 8004 --reload
-```
-
-Open your browser at `http://127.0.0.1:800X` (where `X` corresponds to the project port).
-
----
-
-## Automated Testing & Evals
-
-### Running Unit Tests
-Every project contains a dedicated test suite verifying its core invariants:
-
-```powershell
-cd <project-folder>
-..\.venv\Scripts\python -m pytest tests/
-```
-
-### Running Quantitative Evals
-Each project includes an evaluation harness that benchmarks accuracy, groundedness, latency, and token efficiency against realistic test cases:
-
-```powershell
-cd <project-folder>
 ..\.venv\Scripts\python evals/run_eval.py
 ```
-Scorecards report quantitative metrics (Hit Rate, Verbatim Precision, Refusal Accuracy, Cost Savings) produced dynamically during the run.
 
----
+Evaluate quality, refusals, latency and usage on representative tasks before claiming performance. Router rates are illustrative assumptions. Fair savings comparisons need a separately measured baseline; token savings are not invented when no baseline was run.
 
-## Engineering Attribution & AI Pair-Programming
+For browser checks, install `requirements-dev.txt`, run `python -m playwright install chromium`, then `python tools/browser_smoke.py` using the virtual environment. This starts and cleans up isolated local servers on ports 18000–18009, checks desktop/mobile layouts, and saves screenshots in ignored `artifacts/`.
 
-This repository was developed with Gemini and Claude as AI pair-programming assistants. I designed the architecture, the deterministic safety rules and invariants, the state machines, and the verification test suites, and reviewed all code.
+## Scope
 
+These are local engineering demonstrations with sample data, not an authenticated multi-tenant service. The launcher binds to loopback. Sending and refund execution update local records; they do not deliver email or move money. Approval is a workflow step rather than verified separation of authenticated people.
+
+Quotation matching proves where text occurs, not that every conclusion follows from it. Claim-auditor contradiction rules are narrow. Multi-hop retrieval uses keyword overlap, separate from application 01's hybrid search. PII detection is pattern-based. Forgetting memory marks rows inactive rather than permanently erasing them. Financial examples use floats and need decimal handling for real accounting.
+
+## Maintenance
+
+Root installation uses the same pins as application manifests. Dependabot proposes weekly package and GitHub Actions updates. [CHANGELOG.md](CHANGELOG.md) records actual maintenance. [VERIFICATION.md](VERIFICATION.md) records verification evidence and remaining limits.
+
+## Development
+
+I implemented the applications and used AI assistance for documentation and evaluations.

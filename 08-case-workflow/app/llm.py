@@ -13,9 +13,10 @@ from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
+load_dotenv(ROOT.parent / ".env")
 
-STRONG_MODEL = "gemini-3.8-flash"
-CHEAP_MODEL = "gemini-3.5-flash-lite"
+STRONG_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+CHEAP_MODEL = os.getenv("GEMINI_CHEAP_MODEL", "gemini-3.5-flash-lite")
 
 
 @dataclass(frozen=True)
@@ -36,7 +37,7 @@ def get_client() -> genai.Client:
         raise RuntimeError(
             "GEMINI_API_KEY is missing. Add it to this project's .env and restart."
         )
-    return genai.Client(api_key=key)
+    return genai.Client(api_key=key, http_options=types.HttpOptions(timeout=60000))
 
 
 def _usage(response: object) -> Usage:
