@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Invoice extraction with a confidence and arithmetic review queue."
 requires-python = ">=3.11"
 dependencies = [
-  "google-genai==2.34.0",
+  "google-genai==3.0.0",
   "pydantic==2.14.2",
   "python-dotenv==1.2.4",
   "fastapi==0.162.0",
